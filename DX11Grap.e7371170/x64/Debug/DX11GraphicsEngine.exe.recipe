@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <ProjectOutputs>
+    <ProjectOutput>
+      <FullPath>K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\DX11GraphicsEngine.exe</FullPath>
+    </ProjectOutput>
+  </ProjectOutputs>
+  <ContentFiles>
+    <ContentFile>
+      <FullPath>K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\SimplePS.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\SimpleVS.cso</FullPath>
+    </ContentFile>
+  </ContentFiles>
+  <SatelliteDlls />
+  <NonRecipeFileRefs />
+</Project>

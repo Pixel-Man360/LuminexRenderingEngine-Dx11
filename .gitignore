@@ -39,3 +39,4 @@
 
 # debug information files
 *.dwo
+.vs/DX11GraphicsEngine.slnx/v18/ipch/AutoPCH/4003d000fd780adc/MAIN.ipch

@@ -3,6 +3,8 @@
 #include <DirectXMath.h>
 #include "DeviceResources.h"
 
+using namespace DirectX;
+
 namespace Engine::Graphics
 {
 
@@ -29,6 +31,13 @@ namespace Engine::Graphics
         Shader* m_shader = nullptr;
         Mesh* m_mesh = nullptr;
         ConstantBuffer* m_cb = nullptr;
+
+        float m_rotationAngle = 0.0f;
+
+        //Camera Data
+		XMFLOAT3 m_cameraPosition = XMFLOAT3(0.0f, 0.0f, -2.0f);
+		XMFLOAT3 m_cameraTarget = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		XMFLOAT3 m_cameraUp = XMFLOAT3(0.0f, 1.0f, 0.0f);
 
         bool CreateResources();
         void DestroyResources();

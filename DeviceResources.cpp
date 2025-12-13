@@ -151,6 +151,9 @@ void DeviceResources::Resize(int width, int height)
     }
 
     CreateWindowSizeDependentResources(width, height);
+
+	m_width = width;
+	m_height = height;
 }
 
 void DeviceResources::Present()

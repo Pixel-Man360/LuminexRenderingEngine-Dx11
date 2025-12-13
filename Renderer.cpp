@@ -5,8 +5,10 @@
 #include <DirectXMath.h>
 
 using namespace Engine::Graphics;
+using namespace DirectX;
 
 Renderer::Renderer() = default;
+
 Renderer::~Renderer()
 {
     Release();
@@ -23,6 +25,7 @@ bool Renderer::CreateResources()
 {
     ID3D11Device* device = m_deviceResources->GetDevice();
     ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
+
     if (!device || !context) return false;
 
     m_shader = new Shader();
@@ -61,18 +64,46 @@ void Renderer::Render()
     ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
     auto rtv = m_deviceResources->GetRenderTargetView();
     auto dsv = m_deviceResources->GetDepthStencilView();
+
     if (!context || !rtv) return;
 
     // Clear RTV and DSV
-    float color[4] = { m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w };
+    float color[4] = 
+    {
+        m_clearColor.x, 
+        m_clearColor.y,
+        m_clearColor.z, 
+        m_clearColor.w 
+    };
+
     context->ClearRenderTargetView(rtv, color);
     if (dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    // Update constant buffer with an identity WVProj (for now)
+
+
+    m_rotationAngle += 0.01f;
+
+	// Compute world matrix (rotation around Y axis)
+    XMMATRIX world = XMMatrixRotationY(m_rotationAngle);
+
+	// Compute view matrix
+    XMMATRIX view = XMMatrixLookAtLH
+    (
+        XMLoadFloat3(&m_cameraPosition),
+        XMLoadFloat3(&m_cameraTarget),
+        XMLoadFloat3(&m_cameraUp)
+	);
+
+	// Compute projection matrix
+	float aspectRatio = m_deviceResources->GetAspectRatio();
+	XMMATRIX projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), aspectRatio, 0.1f, 100.0f);
+
+    // Combine matrices
+	XMMATRIX wvp = world * view * projection;
+
+    // Store matrix in constant buffer and update
     CBPerObject cbData = {};
-    DirectX::XMFLOAT4X4 id;
-    DirectX::XMStoreFloat4x4(&id, DirectX::XMMatrixIdentity());
-    cbData.WorldViewProj = id;
+    XMStoreFloat4x4(&cbData.WorldViewProj, XMMatrixTranspose(wvp));
     m_cb->Update(context, cbData);
 
     // Bind shader and input layout

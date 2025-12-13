@@ -12,6 +12,7 @@
 #define IDI_DX11GRAPHICSENGINE			107
 #define IDI_SMALL				108
 #define IDC_DX11GRAPHICSENGINE			109
+#define IDC_ENGINEICON			110
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1

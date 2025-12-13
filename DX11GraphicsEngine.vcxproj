@@ -24,6 +24,7 @@
     <ProjectGuid>{e7371170-afc7-4526-b81d-7a7a361bfb3a}</ProjectGuid>
     <RootNamespace>DX11GraphicsEngine</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>LuminexRenderingEngine-Dx11</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

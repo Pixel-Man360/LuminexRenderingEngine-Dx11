@@ -34,7 +34,7 @@ bool Window::Create(const wchar_t* windowTitle, int width, int height, HINSTANCE
     wcex.cbClsExtra = 0;
     wcex.cbWndExtra = sizeof(void*);
     wcex.hInstance = hInstance;
-	wcex.hIcon = static_cast<HICON>(LoadIcon(hInstance, MAKEINTRESOURCE(IDI_DX11GRAPHICSENGINE)));
+	wcex.hIcon = static_cast<HICON>(LoadIcon(hInstance, MAKEINTRESOURCE(IDC_ENGINEICON)));
     wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground = nullptr;
     wcex.lpszMenuName = nullptr;

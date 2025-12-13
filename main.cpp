@@ -7,7 +7,7 @@
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
     Engine::Core::Window window;
-    if (!window.Create(L"DX11 Graphics Engine", 1280, 720, hInstance))
+    if (!window.Create(L"Luminex", 1280, 720, hInstance))
     {
         MessageBox(nullptr, L"Failed to create window", L"Error", MB_OK);
         return -1;

@@ -20,10 +20,8 @@ namespace Engine::Graphics
         ID3D11DeviceContext* GetDeviceContext() const { return m_context.Get(); }
         ID3D11RenderTargetView* GetRenderTargetView() const { return m_rtv.Get(); }
         ID3D11DepthStencilView* GetDepthStencilView() const { return m_dsv.Get(); }
-
-    private:
-        bool CreateDeviceResources();
-        bool CreateWindowSizeDependentResources(int width, int height);
+		float GetAspectRatio() const { return static_cast<float>(m_width) / static_cast<float>(m_height); }
+       
 
     private:
         Microsoft::WRL::ComPtr<ID3D11Device> m_device;
@@ -38,6 +36,9 @@ namespace Engine::Graphics
         HWND m_hwnd = nullptr;
         int m_width = 0;
         int m_height = 0;
+
+        bool CreateDeviceResources();
+        bool CreateWindowSizeDependentResources(int width, int height);
     };
 
 } // namespace Engine::Graphics

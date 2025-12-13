@@ -1,3 +1,9 @@
+
+cbuffer CBPerObject : register(b0)
+{
+    float4x4 WorldViewProj;
+};
+
 struct VSInput
 {
     float3 position : POSITION;
@@ -13,7 +19,7 @@ struct VSOutput
 VSOutput main(VSInput input)
 {
     VSOutput output;
-    output.position = float4(input.position, 1.0f);
+    output.position = mul(float4(input.position, 1.0f), WorldViewProj);
     output.color = input.color;
     return output;
 }

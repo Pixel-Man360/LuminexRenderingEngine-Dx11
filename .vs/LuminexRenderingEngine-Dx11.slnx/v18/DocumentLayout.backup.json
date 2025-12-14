@@ -3,24 +3,8 @@
   "WorkspaceRootPath": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Window.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:Window.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\resource.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:resource.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:main.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\DeviceResources.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:DeviceResources.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\DeviceResources.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
-      "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:DeviceResources.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+      "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Mesh.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:Mesh.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Renderer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -29,6 +13,13 @@
     {
       "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Renderer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:Renderer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Mesh.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:Mesh.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|C:\\PROGRAM FILES (X86)\\WINDOWS KITS\\10\\INCLUDE\\10.0.26100.0\\WINRT\\WRL\\CLIENT.H||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     }
   ],
   "DocumentGroupContainers": [
@@ -38,97 +29,69 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "client.h",
+              "DocumentMoniker": "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\winrt\\wrl\\client.h",
+              "ToolTip": "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.26100.0\\winrt\\wrl\\client.h",
+              "ViewState": "AgIAAHsBAAAAAAAAAAAewI8BAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-14T17:41:49.317Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "Window.cpp",
-              "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Window.cpp",
-              "RelativeDocumentMoniker": "Window.cpp",
-              "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Window.cpp",
-              "RelativeToolTip": "Window.cpp",
-              "ViewState": "AgIAAAwAAAAAAAAAAAAAACMAAAAfAAAAAAAAAA==",
+              "Title": "Mesh.cpp",
+              "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Mesh.cpp",
+              "RelativeDocumentMoniker": "Mesh.cpp",
+              "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Mesh.cpp",
+              "RelativeToolTip": "Mesh.cpp",
+              "ViewState": "AgIAAFwAAAAAAAAAAAAAADUAAAAvAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-13T18:52:50.16Z",
+              "WhenOpened": "2025-12-14T13:03:47.211Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "resource.h",
-              "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\resource.h",
-              "RelativeDocumentMoniker": "resource.h",
-              "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\resource.h",
-              "RelativeToolTip": "resource.h",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAcAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-12-13T18:51:17.616Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "DeviceResources.cpp",
-              "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\DeviceResources.cpp",
-              "RelativeDocumentMoniker": "DeviceResources.cpp",
-              "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\DeviceResources.cpp",
-              "RelativeToolTip": "DeviceResources.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABUAAAAVAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-13T18:32:26.495Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "DeviceResources.h",
-              "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\DeviceResources.h",
-              "RelativeDocumentMoniker": "DeviceResources.h",
-              "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\DeviceResources.h",
-              "RelativeToolTip": "DeviceResources.h",
-              "ViewState": "AgIAAAQAAAAAAAAAAAAuwCwAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-12-13T18:23:10.851Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "Renderer.h",
-              "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Renderer.h",
-              "RelativeDocumentMoniker": "Renderer.h",
-              "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Renderer.h",
-              "RelativeToolTip": "Renderer.h",
-              "ViewState": "AgIAAA8AAAAAAAAAAAAAACcAAAAzAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-12-13T09:20:35.031Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 5,
               "Title": "Renderer.cpp",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Renderer.cpp",
               "RelativeDocumentMoniker": "Renderer.cpp",
               "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Renderer.cpp",
               "RelativeToolTip": "Renderer.cpp",
-              "ViewState": "AgIAADkAAAAAAAAAAAAAAFMAAAAdAAAAAAAAAA==",
+              "ViewState": "AgIAAJAAAAAAAAAAAAAewEUAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-13T09:20:32.655Z",
+              "WhenOpened": "2025-12-14T12:59:35.363Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "main.cpp",
-              "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\main.cpp",
-              "RelativeDocumentMoniker": "main.cpp",
-              "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\main.cpp",
-              "RelativeToolTip": "main.cpp",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAJAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-12T20:31:10.466Z",
+              "Title": "Renderer.h",
+              "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Renderer.h",
+              "RelativeDocumentMoniker": "Renderer.h",
+              "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Renderer.h",
+              "RelativeToolTip": "Renderer.h",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-14T12:59:31.771Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Mesh.h",
+              "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Mesh.h",
+              "RelativeDocumentMoniker": "Mesh.h",
+              "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Mesh.h",
+              "RelativeToolTip": "Mesh.h",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAewBcAAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
+              "WhenOpened": "2025-12-14T12:58:22.694Z",
               "EditorCaption": ""
             }
           ]

@@ -1,4 +1,2 @@
-﻿  compilation object save succeeded; see K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\SimplePS.cso
-  compilation object save succeeded; see K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\SimpleVS.cso
-  LINK : K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\LuminexRenderingEngine-Dx11.exe not found or not built by the last incremental link; performing full link
+﻿  Mesh.cpp
   DX11GraphicsEngine.vcxproj -> K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\LuminexRenderingEngine-Dx11.exe

@@ -32,6 +32,11 @@ bool Renderer::CreateResources()
     m_mesh = new Mesh();
     m_cb = new ConstantBuffer();
 
+
+    // -----------------------------
+    // Shader & Mesh
+    // -----------------------------
+
     D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(SimpleVertex, Position), D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -44,15 +49,44 @@ bool Renderer::CreateResources()
         return false;
     }
 
-    if (!m_mesh->CreateTriangle(device))
+    if (!m_mesh->CreateCube(device))
     {
+        MessageBox(nullptr, L"Failed to Create Triangle", L"Error", MB_OK);
         return false;
     }
 
     if (!m_cb->Create(device))
     {
+        MessageBox(nullptr, L"Failed to Create Device", L"Error", MB_OK);
         return false;
     }
+
+    // -----------------------------
+   // Rasterizer State
+   // -----------------------------
+
+	D3D11_RASTERIZER_DESC rastDesc = {};
+	rastDesc.FillMode = D3D11_FILL_SOLID;
+    rastDesc.CullMode = D3D11_CULL_NONE;
+	rastDesc.FrontCounterClockwise = FALSE;
+	rastDesc.DepthClipEnable = TRUE;
+
+    HRESULT hr = device->CreateRasterizerState(&rastDesc, &m_rasterizerState);
+    if (FAILED(hr)) return false;
+
+
+    // -----------------------------
+   // Depth-Stencil State
+   // -----------------------------
+
+	D3D11_DEPTH_STENCIL_DESC depthDesc = {};
+	depthDesc.DepthEnable = TRUE;
+	depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depthDesc.DepthFunc = D3D11_COMPARISON_LESS;
+
+	hr = device->CreateDepthStencilState(&depthDesc, &m_depthStencilState);
+    if (FAILED(hr)) return false;
+
 
     return true;
 }
@@ -62,8 +96,8 @@ void Renderer::Render()
     if (!m_deviceResources) return;
 
     ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
-    auto rtv = m_deviceResources->GetRenderTargetView();
-    auto dsv = m_deviceResources->GetDepthStencilView();
+    ID3D11RenderTargetView* rtv = m_deviceResources->GetRenderTargetView();
+    ID3D11DepthStencilView* dsv = m_deviceResources->GetDepthStencilView();
 
     if (!context || !rtv) return;
 
@@ -79,26 +113,27 @@ void Renderer::Render()
     context->ClearRenderTargetView(rtv, color);
     if (dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
+	// Bind pipeline states
+	context->RSSetState(m_rasterizerState);
+	context->OMSetDepthStencilState(m_depthStencilState, 1);
 
 
+    // Update Transforms
     m_rotationAngle += 0.01f;
 
-	// Compute world matrix (rotation around Y axis)
     XMMATRIX world = XMMatrixRotationY(m_rotationAngle);
-
-	// Compute view matrix
     XMMATRIX view = XMMatrixLookAtLH
     (
-        XMLoadFloat3(&m_cameraPosition),
-        XMLoadFloat3(&m_cameraTarget),
-        XMLoadFloat3(&m_cameraUp)
+        //Temporary Camera Data
+        XMVectorSet(0.0f, 2.0f, -2.0f, 1.0f),
+        XMVectorZero(),
+		XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)
 	);
 
-	// Compute projection matrix
+
 	float aspectRatio = m_deviceResources->GetAspectRatio();
 	XMMATRIX projection = XMMatrixPerspectiveFovLH(XMConvertToRadians(45.0f), aspectRatio, 0.1f, 100.0f);
 
-    // Combine matrices
 	XMMATRIX wvp = world * view * projection;
 
     // Store matrix in constant buffer and update
@@ -113,10 +148,8 @@ void Renderer::Render()
     ID3D11Buffer* cb = m_cb->GetBuffer();
     context->VSSetConstantBuffers(0, 1, &cb);
 
-    // Draw mesh
     m_mesh->Draw(context);
 
-    // Present
     m_deviceResources->Present();
 }
 
@@ -129,6 +162,18 @@ void Renderer::Release()
 {
     DestroyResources();
 
+    if (m_rasterizerState)
+    {
+        m_rasterizerState->Release();
+		m_rasterizerState = nullptr;
+    }
+
+    if (m_depthStencilState)
+    {
+		m_depthStencilState->Release();
+        m_depthStencilState = nullptr;
+	}
+
     if (m_shader) { delete m_shader; m_shader = nullptr; }
     if (m_mesh) { delete m_mesh; m_mesh = nullptr; }
     if (m_cb) { delete m_cb; m_cb = nullptr; }
@@ -136,6 +181,4 @@ void Renderer::Release()
 
 void Renderer::DestroyResources()
 {
-    // individual Release() calls would be used if objects manage COM resources externally;
-    // our wrappers handle COM lifetime (ComPtr), and delete will call destructors.
 }

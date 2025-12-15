@@ -25,17 +25,16 @@ namespace Engine::Graphics
 
     private:
         DeviceResources* m_deviceResources = nullptr;
-      
-
         Shader* m_shader = nullptr;
         Mesh* m_mesh = nullptr;
-        ConstantBuffer* m_cb = nullptr;
+        ConstantBuffer* m_cbPerObject = nullptr;
+        ConstantBuffer* m_cbLight = nullptr;
 
         // Pipeline states
 		ID3D11RasterizerState* m_rasterizerState = nullptr;
 		ID3D11DepthStencilState* m_depthStencilState = nullptr;
 
-        XMFLOAT4 m_clearColor{ 0.1f, 0.3f, 0.6f, 1.0f };
+        XMFLOAT4 m_clearColor{ 0.1f, 0.5f, 0.6f, 1.0f };
         float m_rotationAngle = 0.0f;
 
         bool CreateResources();

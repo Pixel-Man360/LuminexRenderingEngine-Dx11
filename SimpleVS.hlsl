@@ -1,25 +1,33 @@
-
 cbuffer CBPerObject : register(b0)
 {
-    float4x4 WorldViewProj;
+    float4x4 World;
+    float4x4 View;
+    float4x4 Projection;
 };
 
 struct VSInput
 {
     float3 position : POSITION;
-    float4 color    : COLOR;
+    float3 normal : NORMAL;
 };
 
 struct VSOutput
 {
     float4 position : SV_POSITION;
-    float4 color    : COLOR;
+    float3 normalWS : NORMAL;
+    float3 posWS : POSITION;
 };
 
 VSOutput main(VSInput input)
 {
     VSOutput output;
-    output.position = mul(float4(input.position, 1.0f), WorldViewProj);
-    output.color = input.color;
+
+    float4 posWorld = mul(float4(input.position, 1.0f), World);
+    float4 posView = mul(posWorld, View);
+
+    output.position = mul(posView, Projection);
+    output.posWS = posWorld.xyz;
+
+    output.normalWS = normalize(mul(input.normal, (float3x3) World));
     return output;
 }

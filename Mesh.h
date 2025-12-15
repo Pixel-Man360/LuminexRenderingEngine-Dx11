@@ -3,16 +3,19 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 #include <vector>
+#include <DirectXMath.h>
 
 using Microsoft::WRL::ComPtr;
+using namespace DirectX;
+
 
 namespace Engine::Graphics
 {
 
-    struct SimpleVertex
+    struct Vertex
     {
-        float Position[3];
-        float Color[4];
+		XMFLOAT3 Position;
+		XMFLOAT3 Normal;
     };
 
     class Mesh
@@ -21,7 +24,6 @@ namespace Engine::Graphics
         Mesh() = default;
         ~Mesh() = default;
 
-        bool CreateTriangle(ID3D11Device* device);
         bool CreateCube(ID3D11Device* device);
 
         void Draw(ID3D11DeviceContext* context);
@@ -31,7 +33,6 @@ namespace Engine::Graphics
     private:
         ComPtr<ID3D11Buffer> m_vertexBuffer;
         ComPtr<ID3D11Buffer> m_indexBuffer;
-        UINT m_vertexCount = 0;
         UINT m_indexCount = 0;
 
     };

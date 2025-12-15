@@ -2,6 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by DX11GraphicsEngine.rc
 
+
 #define IDS_APP_TITLE			103
 
 #define IDR_MAINFRAME			128
@@ -12,7 +13,8 @@
 #define IDI_DX11GRAPHICSENGINE			107
 #define IDI_SMALL				108
 #define IDC_DX11GRAPHICSENGINE			109
-#define IDC_ENGINEICON			110
+#define IDI_EngineIcon			110
+
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1

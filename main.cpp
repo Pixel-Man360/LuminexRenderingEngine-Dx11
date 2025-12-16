@@ -3,15 +3,23 @@
 #include "Window.h"
 #include "DeviceResources.h"
 #include "Renderer.h"
+#include "Input.h"
+
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
     Engine::Core::Window window;
+	Engine::Core::Input input;
+
     if (!window.Create(L"Luminex", 1280, 720, hInstance))
     {
         MessageBox(nullptr, L"Failed to create window", L"Error", MB_OK);
         return -1;
     }
+
+    input.Initialize(window.GetHwnd());
+   
+
 
     Engine::Graphics::DeviceResources deviceResources;
     if (!deviceResources.Initialize(window.GetHwnd(), window.GetWidth(), window.GetHeight()))
@@ -37,6 +45,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
     while (!window.ShouldClose())
     {
         window.ProcessEvents();
+        input.Update();
         renderer.Render();
         // Sleep(1); // optional, to reduce CPU usage
     }

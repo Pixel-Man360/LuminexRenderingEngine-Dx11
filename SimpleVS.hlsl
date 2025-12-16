@@ -9,6 +9,7 @@ struct VSInput
 {
     float3 position : POSITION;
     float3 normal : NORMAL;
+    float2 uv : TEXCOORD;
 };
 
 struct VSOutput
@@ -16,6 +17,7 @@ struct VSOutput
     float4 position : SV_POSITION;
     float3 normalWS : NORMAL;
     float3 posWS : POSITION;
+    float2 uv : TEXCOORD;
 };
 
 VSOutput main(VSInput input)
@@ -29,5 +31,7 @@ VSOutput main(VSInput input)
     output.posWS = posWorld.xyz;
 
     output.normalWS = normalize(mul(input.normal, (float3x3) World));
+    output.uv = input.uv;
+    
     return output;
 }

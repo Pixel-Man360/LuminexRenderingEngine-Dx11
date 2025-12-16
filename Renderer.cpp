@@ -2,7 +2,9 @@
 #include "Shader.h"
 #include "Mesh.h"
 #include "ConstantBuffer.h"
+
 #include <DirectXMath.h>
+#include <WICTextureLoader.h>
 
 using namespace Engine::Graphics;
 using namespace DirectX;
@@ -40,11 +42,9 @@ bool Renderer::CreateResources()
     // -----------------------------
     D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-          D3D11_INPUT_PER_VERTEX_DATA, 0 },
-
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12,
-          D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     if (!m_shader->LoadFromFiles(
@@ -78,6 +78,30 @@ bool Renderer::CreateResources()
         MessageBox(nullptr, L"Failed to create CBLight", L"Error", MB_OK);
         return false;
     }
+
+
+    // -----------------------------
+    // Texture
+    // -----------------------------
+    if (FAILED(CreateWICTextureFromFile(device, context, L"Assets/textures/Brick.png", nullptr, &m_diffuseTexture))) 
+    {
+      MessageBox(nullptr, L"Failed to Load Texture", L"Error", MB_OK);
+      return false;
+    }
+
+     // -----------------------------
+    // Sampler
+    // -----------------------------
+    D3D11_SAMPLER_DESC samp = {};
+    samp.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samp.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    samp.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    samp.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    samp.MaxLOD = D3D11_FLOAT32_MAX;
+
+    if (FAILED(device->CreateSamplerState(&samp, &m_samplerState)))
+      return false;
+
 
     // -----------------------------
     // Rasterizer State
@@ -123,10 +147,7 @@ void Renderer::Render()
     };
 
     context->ClearRenderTargetView(rtv, clearColor);
-    if (dsv)
-        context->ClearDepthStencilView(dsv,
-            D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-            1.0f, 0);
+    if (dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
     // Bind pipeline states
     context->RSSetState(m_rasterizerState);
@@ -137,14 +158,13 @@ void Renderer::Render()
     // -----------------------------
     m_rotationAngle += 0.01f;
 
-    XMMATRIX world = XMMatrixRotationY(m_rotationAngle);
+    float dt = 0.016f; // temporary (next milestone: proper timing)
 
-    XMMATRIX view = XMMatrixLookAtLH
-    (
-        XMVectorSet(0.0f, 2.0f, -5.0f, 1.0f),
-        XMVectorZero(),
-        XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f)
-    );
+    m_camera.Update(dt);
+
+    XMMATRIX world = XMMatrixRotationY(m_rotationAngle);
+    XMMATRIX view = m_camera.GetViewMatrix();
+
 
     float aspect = m_deviceResources->GetAspectRatio();
     XMMATRIX projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, aspect, 0.1f, 100.0f);
@@ -163,7 +183,7 @@ void Renderer::Render()
     // Update CBLight (PS)
     // -----------------------------
     CBLight cbLight = {};
-    cbLight.LightDirection = XMFLOAT3(-0.5f, -2.0f, 1.5f);
+    cbLight.LightDirection = XMFLOAT3(-0.5f, -1.0f, 0.5f);
     cbLight.LightColor = XMFLOAT3(1.0f, 1.0f, 1.0f);
 
     m_cbLight->Update(context, &cbLight);
@@ -171,6 +191,7 @@ void Renderer::Render()
     // -----------------------------
     // Bind shaders + buffers
     // -----------------------------
+
     m_shader->Bind(context);
 
     ID3D11Buffer* vsCB = m_cbPerObject->Get();
@@ -178,6 +199,9 @@ void Renderer::Render()
 
     ID3D11Buffer* psCB = m_cbLight->Get();
     context->PSSetConstantBuffers(1, 1, &psCB);
+
+    context->PSSetShaderResources(0, 1, &m_diffuseTexture);
+    context->PSSetSamplers(0, 1, &m_samplerState);
 
     // -----------------------------
     // Draw
@@ -198,6 +222,9 @@ void Renderer::Release()
 
     if (m_rasterizerState) { m_rasterizerState->Release(); m_rasterizerState = nullptr; }
     if (m_depthStencilState) { m_depthStencilState->Release(); m_depthStencilState = nullptr; }
+    if (m_diffuseTexture) { m_diffuseTexture->Release(); m_diffuseTexture = nullptr; }
+    if (m_samplerState) { m_samplerState->Release(); m_samplerState = nullptr; }
+    
 
     delete m_shader;       m_shader = nullptr;
     delete m_mesh;         m_mesh = nullptr;

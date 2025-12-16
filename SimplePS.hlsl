@@ -6,11 +6,15 @@ cbuffer CBLight : register(b1)
     float pad2;
 };
 
+Texture2D DiffuseTexture : register(t0);
+SamplerState TextureSampler : register(s0);
+
 struct PSInput
 {
     float4 position : SV_POSITION;
     float3 normalWS : NORMAL;
     float3 posWS : POSITION;
+    float2 uv : TEXCOORD;
 };
 
 float4 main(PSInput input) : SV_TARGET
@@ -23,7 +27,8 @@ float4 main(PSInput input) : SV_TARGET
 
     float diff = max(dot(N, L), 0.0f);
     float spec = pow(max(dot(N, H), 0.0f), 200.0f);
+    float3 albedo = DiffuseTexture.Sample(TextureSampler, input.uv).rgb;
 
-    float3 color = LightColor * (diff + spec);
+    float3 color = albedo * LightColor * (diff + spec);
     return float4(color, 1.0f);
 }

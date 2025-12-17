@@ -15,7 +15,7 @@ Camera::Camera()
 
 void Camera::Update(float dt)
 {
-    if (Input::IsMouseButtonDown(VK_LBUTTON))
+    if (Input::IsMouseButtonDown(VK_RBUTTON))
     {
         float dx = Input::GetMouseDeltaX() * m_mouseSensitivity;
         float dy = Input::GetMouseDeltaY() * m_mouseSensitivity;

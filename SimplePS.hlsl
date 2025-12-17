@@ -4,6 +4,8 @@ cbuffer CBLight : register(b1)
     float pad1;
     float3 LightColor;
     float pad2;
+    float3 CameraPosition;
+    float pad3;
 };
 
 Texture2D DiffuseTexture : register(t0);
@@ -21,14 +23,14 @@ float4 main(PSInput input) : SV_TARGET
 {
     float3 N = normalize(input.normalWS);
     float3 L = normalize(-LightDirection);
-    float3 V = normalize(-input.posWS);
-
+    float3 V = normalize(CameraPosition - input.posWS);
     float3 H = normalize(L + V);
 
     float diff = max(dot(N, L), 0.0f);
-    float spec = pow(max(dot(N, H), 0.0f), 200.0f);
+    float spec = pow(max(dot(N, H), 0.0f), 32.0f);
+    
     float3 albedo = DiffuseTexture.Sample(TextureSampler, input.uv).rgb;
 
-    float3 color = albedo * LightColor * (diff + spec);
+    float3 color = albedo * LightColor * (diff + spec * 0.25f);
     return float4(color, 1.0f);
 }

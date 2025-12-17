@@ -15,10 +15,15 @@ namespace Engine::Core
         static float GetMouseDeltaX();
         static float GetMouseDeltaY();
 
+        static float GetMouseWheelDelta();
+        static void OnMouseWheelMoved(float delta);
+		static void ResetMouseWheelDelta() { s_wheelDelta = 0.0f; }
+
     private:
         static HWND s_hwnd;
         static POINT s_lastMouse;
         static float s_dx;
         static float s_dy;
+        static float s_wheelDelta;
     };
 }

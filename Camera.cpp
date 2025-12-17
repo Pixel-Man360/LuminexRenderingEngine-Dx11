@@ -6,7 +6,7 @@ using namespace Engine::Core;
 
 Camera::Camera()
 {
-    m_position = { 0, 1.5, -5 };
+    m_position = { 1.5, 1.5, -5 };
     m_pitch = -0.3f;
     m_yaw = 0.0f;
     m_moveSpeed = 5.0f;
@@ -43,6 +43,12 @@ void Camera::Update(float dt)
     if (Input::IsKeyDown('S')) pos -= forward * m_moveSpeed * dt;
     if (Input::IsKeyDown('A')) pos += right * m_moveSpeed * dt;
     if (Input::IsKeyDown('D')) pos -= right * m_moveSpeed * dt;
+
+	if (Input::GetMouseWheelDelta() != 0.0f)
+    {
+        pos += forward * Input::GetMouseWheelDelta() * m_moveSpeed * 0.5f;
+		Input::ResetMouseWheelDelta();
+    }
 
     XMStoreFloat3(&m_position, pos);
 }

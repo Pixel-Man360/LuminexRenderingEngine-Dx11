@@ -1,11 +1,14 @@
 #pragma once
 
 #include <DirectXMath.h>
+#include <vector>
 #include "DeviceResources.h"
 #include "Camera.h"
+#include "RenderObject.h"
 
 
 using namespace DirectX;
+using namespace std;
 
 namespace Engine::Graphics
 {
@@ -43,9 +46,10 @@ namespace Engine::Graphics
 
         Camera m_camera;
 
+		vector<RenderObject*> m_renderObjects;
+
 
         XMFLOAT4 m_clearColor{ 0.1f, 0.5f, 0.6f, 1.0f };
-        float m_rotationAngle = 15.0f;
 
         bool CreateResources();
         void DestroyResources();

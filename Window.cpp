@@ -1,5 +1,6 @@
 #include "Window.h"
 #include "resource.h"
+#include "Input.h"
 #include <cassert>
 #include <string>
 
@@ -127,6 +128,16 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
         }
         return 0;
     }
+
+    case WM_MOUSEWHEEL:
+        {
+            // GET_WHEEL_DELTA_WPARAM returns delta in multiples of WHEEL_DELTA (120)
+            // Normalize it to -1.0 to 1.0 range
+            float delta = GET_WHEEL_DELTA_WPARAM(wParam) / 120.0f;
+            Input::OnMouseWheelMoved(delta);
+            return 0;
+        }
+
 
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);

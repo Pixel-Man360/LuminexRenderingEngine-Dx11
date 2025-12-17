@@ -33,7 +33,6 @@ bool Renderer::CreateResources()
     m_shader = new Shader();
     m_mesh = new Mesh();
 
-    // NEW: two constant buffers
     m_cbPerObject = new ConstantBuffer();
     m_cbLight = new ConstantBuffer();
 
@@ -42,9 +41,9 @@ bool Renderer::CreateResources()
     // -----------------------------
     D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     if (!m_shader->LoadFromFiles(
@@ -65,31 +64,42 @@ bool Renderer::CreateResources()
     }
 
     // -----------------------------
+    // Render Objects
+    // -----------------------------
+    {
+        RenderObject* cube1 = new RenderObject(m_mesh);
+        cube1->GetTransform().SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
+        m_renderObjects.push_back(cube1);
+
+        RenderObject* cube2 = new RenderObject(m_mesh);
+        cube2->GetTransform().SetPosition(XMFLOAT3(3.0f, 0.0f, 0.0f));
+        m_renderObjects.push_back(cube2);
+    }
+
+    // -----------------------------
     // Constant Buffers
     // -----------------------------
     if (!m_cbPerObject->Create(device, sizeof(CBPerObject)))
-    {
-        MessageBox(nullptr, L"Failed to create CBPerObject", L"Error", MB_OK);
         return false;
-    }
 
     if (!m_cbLight->Create(device, sizeof(CBLight)))
-    {
-        MessageBox(nullptr, L"Failed to create CBLight", L"Error", MB_OK);
         return false;
-    }
-
 
     // -----------------------------
     // Texture
     // -----------------------------
-    if (FAILED(CreateWICTextureFromFile(device, context, L"Assets/textures/Brick.png", nullptr, &m_diffuseTexture))) 
+    if (FAILED(CreateWICTextureFromFile(
+        device,
+        context,
+        L"Assets/textures/Brick.png",
+        nullptr,
+        &m_diffuseTexture)))
     {
-      MessageBox(nullptr, L"Failed to Load Texture", L"Error", MB_OK);
-      return false;
+        MessageBox(nullptr, L"Failed to load texture", L"Error", MB_OK);
+        return false;
     }
 
-     // -----------------------------
+    // -----------------------------
     // Sampler
     // -----------------------------
     D3D11_SAMPLER_DESC samp = {};
@@ -100,8 +110,7 @@ bool Renderer::CreateResources()
     samp.MaxLOD = D3D11_FLOAT32_MAX;
 
     if (FAILED(device->CreateSamplerState(&samp, &m_samplerState)))
-      return false;
-
+        return false;
 
     // -----------------------------
     // Rasterizer State
@@ -130,13 +139,9 @@ bool Renderer::CreateResources()
 
 void Renderer::Render()
 {
-    if (!m_deviceResources) return;
-
     ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
     ID3D11RenderTargetView* rtv = m_deviceResources->GetRenderTargetView();
     ID3D11DepthStencilView* dsv = m_deviceResources->GetDepthStencilView();
-
-    if (!context || !rtv) return;
 
     float clearColor[4] =
     {
@@ -147,51 +152,37 @@ void Renderer::Render()
     };
 
     context->ClearRenderTargetView(rtv, clearColor);
-    if (dsv) context->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    if (dsv)
+        context->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
-    // Bind pipeline states
     context->RSSetState(m_rasterizerState);
     context->OMSetDepthStencilState(m_depthStencilState, 0);
 
     // -----------------------------
-    // Matrices
+    // Camera + Matrices
     // -----------------------------
-    m_rotationAngle += 0.01f;
-
-    float dt = 0.016f; // temporary (next milestone: proper timing)
+    float dt = 0.016f; // temporary
 
     m_camera.Update(dt);
 
-    XMMATRIX world = XMMatrixRotationY(m_rotationAngle);
     XMMATRIX view = m_camera.GetViewMatrix();
-
-
-    float aspect = m_deviceResources->GetAspectRatio();
-    XMMATRIX projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, aspect, 0.1f, 100.0f);
-
-    // -----------------------------
-    // Update CBPerObject (VS)
-    // -----------------------------
-    CBPerObject cbObj = {};
-    XMStoreFloat4x4(&cbObj.World, XMMatrixTranspose(world));
-    XMStoreFloat4x4(&cbObj.View, XMMatrixTranspose(view));
-    XMStoreFloat4x4(&cbObj.Projection, XMMatrixTranspose(projection));
-
-    m_cbPerObject->Update(context, &cbObj);
+    XMMATRIX proj = XMMatrixPerspectiveFovLH(
+        XM_PIDIV4,
+        m_deviceResources->GetAspectRatio(),
+        0.1f,
+        100.0f);
 
     // -----------------------------
-    // Update CBLight (PS)
+    // Lighting
     // -----------------------------
     CBLight cbLight = {};
     cbLight.LightDirection = XMFLOAT3(-0.5f, -1.0f, 0.5f);
     cbLight.LightColor = XMFLOAT3(1.0f, 1.0f, 1.0f);
-
     m_cbLight->Update(context, &cbLight);
 
     // -----------------------------
-    // Bind shaders + buffers
+    // Bind pipeline
     // -----------------------------
-
     m_shader->Bind(context);
 
     ID3D11Buffer* vsCB = m_cbPerObject->Get();
@@ -204,9 +195,34 @@ void Renderer::Render()
     context->PSSetSamplers(0, 1, &m_samplerState);
 
     // -----------------------------
-    // Draw
+    // Draw objects
     // -----------------------------
-    m_mesh->Draw(context);
+    for (size_t i = 0; i < m_renderObjects.size(); ++i)
+    {
+        RenderObject* obj = m_renderObjects[i];
+
+        XMFLOAT3 axis = (i == 0)
+            ? XMFLOAT3(0, 1, 0)
+            : XMFLOAT3(1, 0, 0);
+
+        obj->GetTransform().RotateAxisAngle(axis, dt * (i + 1));
+
+
+        XMMATRIX world = obj->GetTransform().GetWorldMatrix();
+
+        // Compute inverse transpose (ignore translation)
+        XMMATRIX worldInvTranspose = XMMatrixTranspose(XMMatrixInverse(nullptr, world));
+
+        CBPerObject cbObj = {};
+        XMStoreFloat4x4(&cbObj.World, XMMatrixTranspose(world));
+        XMStoreFloat4x4(&cbObj.WorldInvTranspose, XMMatrixTranspose(worldInvTranspose));
+        XMStoreFloat4x4(&cbObj.View, XMMatrixTranspose(view));
+        XMStoreFloat4x4(&cbObj.Projection, XMMatrixTranspose(proj));
+
+        m_cbPerObject->Update(context, &cbObj);
+
+        obj->GetMesh()->Draw(context);
+    }
 
     m_deviceResources->Present();
 }
@@ -218,20 +234,18 @@ void Renderer::SetClearColor(float r, float g, float b, float a)
 
 void Renderer::Release()
 {
-    DestroyResources();
+    if (m_rasterizerState)  m_rasterizerState->Release();
+    if (m_depthStencilState) m_depthStencilState->Release();
+    if (m_diffuseTexture)   m_diffuseTexture->Release();
+    if (m_samplerState)     m_samplerState->Release();
 
-    if (m_rasterizerState) { m_rasterizerState->Release(); m_rasterizerState = nullptr; }
-    if (m_depthStencilState) { m_depthStencilState->Release(); m_depthStencilState = nullptr; }
-    if (m_diffuseTexture) { m_diffuseTexture->Release(); m_diffuseTexture = nullptr; }
-    if (m_samplerState) { m_samplerState->Release(); m_samplerState = nullptr; }
-    
+    delete m_shader;
+    delete m_mesh;
+    delete m_cbPerObject;
+    delete m_cbLight;
 
-    delete m_shader;       m_shader = nullptr;
-    delete m_mesh;         m_mesh = nullptr;
-    delete m_cbPerObject;  m_cbPerObject = nullptr;
-    delete m_cbLight;      m_cbLight = nullptr;
-}
+    for (RenderObject* obj : m_renderObjects)
+        delete obj;
 
-void Renderer::DestroyResources()
-{
+    m_renderObjects.clear();
 }

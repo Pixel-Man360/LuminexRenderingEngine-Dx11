@@ -6,6 +6,7 @@ HWND Input::s_hwnd = nullptr;
 POINT Input::s_lastMouse{};
 float Input::s_dx = 0;
 float Input::s_dy = 0;
+float Input::s_wheelDelta = 0;
 
 void Input::Initialize(HWND hwnd)
 {
@@ -36,6 +37,11 @@ bool Input::IsMouseButtonDown(int button)
     return (GetAsyncKeyState(button) & 0x8000) != 0;
 }
 
+void Input::OnMouseWheelMoved(float delta)
+{
+    s_wheelDelta += delta;
+}
 
 float Input::GetMouseDeltaX() { return s_dx; }
 float Input::GetMouseDeltaY() { return s_dy; }
+float Input::GetMouseWheelDelta() { return s_wheelDelta; }

@@ -1,6 +1,7 @@
 cbuffer CBPerObject : register(b0)
 {
     float4x4 World;
+    float4x4 WorldInvTranspose;
     float4x4 View;
     float4x4 Projection;
 };
@@ -25,12 +26,13 @@ VSOutput main(VSInput input)
     VSOutput output;
 
     float4 posWorld = mul(float4(input.position, 1.0f), World);
-    float4 posView = mul(posWorld, View);
-
-    output.position = mul(posView, Projection);
     output.posWS = posWorld.xyz;
+    
+    float4 posView = mul(posWorld, View);
+    output.position = mul(posView, Projection);
 
-    output.normalWS = normalize(mul(input.normal, (float3x3) World));
+    output.normalWS = normalize(mul(input.normal, (float3x3) WorldInvTranspose));
+
     output.uv = input.uv;
     
     return output;

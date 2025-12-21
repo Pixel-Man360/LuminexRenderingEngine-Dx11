@@ -2,9 +2,12 @@
 #include "Shader.h"
 #include "Mesh.h"
 #include "ConstantBuffer.h"
+#include "CBPerObject.h"
+#include "CBLight.h"
 
 #include <DirectXMath.h>
 #include <WICTextureLoader.h>
+
 
 using namespace Engine::Graphics;
 using namespace DirectX;
@@ -134,6 +137,39 @@ bool Renderer::CreateResources()
     if (FAILED(device->CreateDepthStencilState(&depthDesc, &m_depthStencilState)))
         return false;
 
+
+    Light sun = {};
+    sun.Type = LIGHT_DIRECTIONAL;
+    sun.Direction = XMFLOAT3(-0.5f, -1.0, 0.5);
+    sun.Color = XMFLOAT3(1, 1, 1);
+    sun.Intensity = 1.0f;
+
+    Light lamp = {};
+    lamp.Type = LIGHT_POINT;
+    lamp.Position = XMFLOAT3(3, 3, 0);
+    lamp.Color = XMFLOAT3(0.25, 0.85f, 0.3f);
+    lamp.Range = 5.0f;
+    lamp.Intensity = 1.0f;
+
+    Light lamp2 = {};
+    lamp2.Type = LIGHT_POINT;
+    lamp2.Position = XMFLOAT3(0, 0, -2);
+    lamp2.Color = XMFLOAT3(0.85, 0.75f, 0.0f);
+    lamp2.Range = 5.0f;
+    lamp2.Intensity = 1.0f;
+
+    Light lamp3 = {};
+    lamp3.Type = LIGHT_POINT;
+    lamp3.Position = XMFLOAT3(0, 0, 2);
+    lamp3.Color = XMFLOAT3(0.5, 0.0f, 0.85f);
+    lamp3.Range = 5.0f;
+    lamp3.Intensity = 1.0f;
+
+    m_lights.push_back(sun);
+    m_lights.push_back(lamp);
+    m_lights.push_back(lamp2);
+	m_lights.push_back(lamp3);
+
     return true;
 }
 
@@ -175,10 +211,18 @@ void Renderer::Render()
     // -----------------------------
     // Lighting
     // -----------------------------
-    CBLight cbLight = {};
-    cbLight.LightDirection = XMFLOAT3(-0.5f, -1.0f, 0.5f);
-    cbLight.LightColor = XMFLOAT3(1.0f, 1.0f, 1.0f);
-    m_cbLight->Update(context, &cbLight);
+
+  
+    CBLight cb = {};
+    cb.LightCount = (int)m_lights.size();
+    cb.CameraPosition = m_camera.GetPosition();
+
+    for (int i = 0; i < cb.LightCount; i++)
+    {
+        cb.Lights[i] = m_lights[i];
+    }
+
+    m_cbLight->Update(context, &cb);
 
     // -----------------------------
     // Bind pipeline

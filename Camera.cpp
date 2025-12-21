@@ -41,8 +41,8 @@ void Camera::Update(float dt)
 
     if (Input::IsKeyDown('W')) pos += forward * m_moveSpeed * dt;
     if (Input::IsKeyDown('S')) pos -= forward * m_moveSpeed * dt;
-    if (Input::IsKeyDown('A')) pos += right * m_moveSpeed * dt;
-    if (Input::IsKeyDown('D')) pos -= right * m_moveSpeed * dt;
+    if (Input::IsKeyDown('A')) pos -= right * m_moveSpeed * dt;
+    if (Input::IsKeyDown('D')) pos += right * m_moveSpeed * dt;
 
 	if (Input::GetMouseWheelDelta() != 0.0f)
     {

@@ -12,6 +12,7 @@ namespace Engine::Graphics
 
         void Update(float dt);
         XMMATRIX GetViewMatrix() const;
+		XMFLOAT3 GetPosition() const { return m_position; }
 
     private:
         XMFLOAT3 m_position;

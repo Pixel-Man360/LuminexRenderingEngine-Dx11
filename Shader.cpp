@@ -10,7 +10,10 @@ static bool CompileShaderFromFile(const wchar_t* filePath, const char* entryPoin
     UINT compileFlags = 0;
 #if defined(_DEBUG)
     compileFlags |= D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+    compileFlags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;
 #endif
+
 
     ID3DBlob* shaderBlob = nullptr;
     ID3DBlob* errorBlob = nullptr;

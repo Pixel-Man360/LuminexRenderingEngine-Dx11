@@ -5,6 +5,10 @@
 #include "DeviceResources.h"
 #include "Camera.h"
 #include "RenderObject.h"
+#include "Light.h"
+#include "CBLight.h"
+#include "ConstantBuffer.h"
+
 
 
 using namespace DirectX;
@@ -26,6 +30,9 @@ namespace Engine::Graphics
         bool Initialize(DeviceResources* deviceResources);
         void Render();
         void SetClearColor(float r, float g, float b, float a);
+
+        void AddLight(const Light& light);
+       
         void Release();
 
     private:
@@ -34,6 +41,8 @@ namespace Engine::Graphics
         Mesh* m_mesh = nullptr;
         ConstantBuffer* m_cbPerObject = nullptr;
         ConstantBuffer* m_cbLight = nullptr;
+        vector<Light> m_lights;
+
 
 
         // Pipeline states
@@ -43,6 +52,7 @@ namespace Engine::Graphics
         // Texture
         ID3D11ShaderResourceView* m_diffuseTexture = nullptr;
         ID3D11SamplerState* m_samplerState = nullptr;
+
 
         Camera m_camera;
 

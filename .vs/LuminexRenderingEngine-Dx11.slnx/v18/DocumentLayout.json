@@ -66,8 +66,16 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 4,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
             {
               "$type": "Document",
               "DocumentIndex": 6,
@@ -78,8 +86,7 @@
               "RelativeToolTip": "Mesh.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAaAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-12-28T14:50:22.481Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-28T14:50:22.481Z"
             },
             {
               "$type": "Document",
@@ -91,8 +98,7 @@
               "RelativeToolTip": "Shader.cpp",
               "ViewState": "AgIAADwAAAAAAAAAAAAAAB4AAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-28T14:45:18.785Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-28T14:45:18.785Z"
             },
             {
               "$type": "Document",
@@ -102,7 +108,7 @@
               "RelativeDocumentMoniker": "Renderer.cpp",
               "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Renderer.cpp",
               "RelativeToolTip": "Renderer.cpp",
-              "ViewState": "AgIAAIEAAAAAAAAAAAAAAI4AAAAsAAAAAAAAAA==",
+              "ViewState": "AgIAANgAAAAAAAAAAAAAAI4AAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2025-12-14T12:59:35.363Z",
               "EditorCaption": ""
@@ -117,12 +123,7 @@
               "RelativeToolTip": "SimplePS.hlsl",
               "ViewState": "AgIAAFQAAAAAAAAAAAAgwEUAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-12-27T20:55:29.001Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+              "WhenOpened": "2025-12-27T20:55:29.001Z"
             },
             {
               "$type": "Document",
@@ -134,8 +135,7 @@
               "RelativeToolTip": "Mesh.cpp",
               "ViewState": "AgIAAIQAAAAAAAAAAAAAAJ4AAABLAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-28T14:44:20.944Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-28T14:44:20.944Z"
             },
             {
               "$type": "Document",
@@ -147,8 +147,7 @@
               "RelativeToolTip": "Renderer.h",
               "ViewState": "AgIAACQAAAAAAAAAAIAwwDYAAAA8AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-12-14T12:59:31.771Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-14T12:59:31.771Z"
             },
             {
               "$type": "Document",
@@ -160,8 +159,7 @@
               "RelativeToolTip": "RenderObject.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAASAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-12-28T14:44:13.969Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-28T14:44:13.969Z"
             },
             {
               "$type": "Document",
@@ -173,8 +171,7 @@
               "RelativeToolTip": "RenderObject.cpp",
               "ViewState": "AgIAAAkAAAAAAAAAAAAAABYAAAAYAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-28T14:44:10.249Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-28T14:44:10.249Z"
             },
             {
               "$type": "Document",
@@ -186,8 +183,7 @@
               "RelativeToolTip": "ConstantBuffer.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-28T14:45:04.937Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-28T14:45:04.937Z"
             },
             {
               "$type": "Document",
@@ -199,8 +195,7 @@
               "RelativeToolTip": "DeviceResources.cpp",
               "ViewState": "AgIAADwAAAAAAAAAAAAAABsAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-28T14:44:50.832Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-28T14:44:50.832Z"
             },
             {
               "$type": "Document",
@@ -212,8 +207,7 @@
               "RelativeToolTip": "DeviceResources.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-12-28T14:44:54.441Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-28T14:44:54.441Z"
             },
             {
               "$type": "Document",
@@ -225,12 +219,7 @@
               "RelativeToolTip": "Light.h",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2025-12-28T14:44:52.553Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+              "WhenOpened": "2025-12-28T14:44:52.553Z"
             },
             {
               "$type": "Document",
@@ -242,8 +231,7 @@
               "RelativeToolTip": "SimpleVS.hlsl",
               "ViewState": "AgIAAA0AAAAAAAAAAAAwwCAAAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-12-28T14:43:33.763Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-28T14:43:33.763Z"
             },
             {
               "$type": "Document",
@@ -255,8 +243,7 @@
               "RelativeToolTip": "Camera.cpp",
               "ViewState": "AgIAAA8AAAAAAAAAAAAAACQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2025-12-21T07:22:15.134Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-21T07:22:15.134Z"
             }
           ]
         },

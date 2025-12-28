@@ -104,6 +104,48 @@ bool Mesh::CreateCube(ID3D11Device* device)
     return true;
 }
 
+bool Mesh::CreatePlane(ID3D11Device* device)
+{
+    Vertex vertices[] =
+    {
+        {{-10, 0, -10}, {0, 1, 0}, {0, 1}},
+        {{-10, 0,  10}, {0, 1, 0}, {0, 0}},
+        {{ 10, 0,  10}, {0, 1, 0}, {1, 0}},
+        {{ 10, 0, -10}, {0, 1, 0}, {1, 1}},
+    };
+
+    uint32_t indices[] =
+    {
+        0, 1, 2,
+        0, 2, 3
+    };
+
+    m_indexCount = 6;
+
+    D3D11_BUFFER_DESC vbDesc = {};
+    vbDesc.Usage = D3D11_USAGE_DEFAULT;
+    vbDesc.ByteWidth = sizeof(vertices);
+    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA vbData = {};
+    vbData.pSysMem = vertices;
+
+    device->CreateBuffer(&vbDesc, &vbData, m_vertexBuffer.GetAddressOf());
+
+    D3D11_BUFFER_DESC ibDesc = {};
+    ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    ibDesc.ByteWidth = sizeof(indices);
+    ibDesc.Usage = D3D11_USAGE_DEFAULT;
+
+    D3D11_SUBRESOURCE_DATA ibData = {};
+    ibData.pSysMem = indices;
+
+    device->CreateBuffer(&ibDesc, &ibData, m_indexBuffer.GetAddressOf());
+
+    return true;
+}
+
+
 
 void Mesh::Draw(ID3D11DeviceContext* context)
 {

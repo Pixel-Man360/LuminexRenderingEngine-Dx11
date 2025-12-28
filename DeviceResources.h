@@ -21,6 +21,8 @@ namespace Engine::Graphics
         ID3D11RenderTargetView* GetRenderTargetView() const { return m_rtv.Get(); }
         ID3D11DepthStencilView* GetDepthStencilView() const { return m_dsv.Get(); }
 		float GetAspectRatio() const { return static_cast<float>(m_width) / static_cast<float>(m_height); }
+		float GetWidth() const { return static_cast<float>(m_width); }
+		float GetHeight() const { return static_cast<float>(m_height); }
        
 
     private:

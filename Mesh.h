@@ -26,6 +26,7 @@ namespace Engine::Graphics
         ~Mesh() = default;
 
         bool CreateCube(ID3D11Device* device);
+		bool CreatePlane(ID3D11Device* device);
 
         void Draw(ID3D11DeviceContext* context);
 

@@ -7,6 +7,12 @@
   </ProjectOutputs>
   <ContentFiles>
     <ContentFile>
+      <FullPath>K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\ShadowPS.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
+      <FullPath>K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\ShadowVS.cso</FullPath>
+    </ContentFile>
+    <ContentFile>
       <FullPath>K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\SimplePS.cso</FullPath>
     </ContentFile>
     <ContentFile>

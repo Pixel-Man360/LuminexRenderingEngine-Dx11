@@ -158,7 +158,13 @@
     <FxCompile Include="SimpleVS.hlsl">
       <Filter>Source Files\Engine\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="ShadowVS.hlsl">
+      <Filter>Source Files\Engine\shaders</Filter>
+    </FxCompile>
     <FxCompile Include="SimplePS.hlsl">
+      <Filter>Source Files\Engine\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowPS.hlsl">
       <Filter>Source Files\Engine\shaders</Filter>
     </FxCompile>
   </ItemGroup>

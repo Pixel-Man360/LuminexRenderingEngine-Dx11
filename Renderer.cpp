@@ -4,11 +4,13 @@
 #include "ConstantBuffer.h"
 #include "CBPerObject.h"
 #include "CBLight.h"
+#include "Input.h"
 
 #include <DirectXMath.h>
 #include <WICTextureLoader.h>
 
 using namespace Engine::Graphics;
+using namespace Engine::Core;
 using namespace DirectX;
 
 
@@ -45,11 +47,13 @@ bool Renderer::CreateResources()
 
     m_shader = new Shader();
     m_shadowShader = new Shader();
+	m_shadowDebugShader = new Shader();
     m_mesh = new Mesh();
     m_planeMesh = new Mesh();
 
     m_cbPerObject = new ConstantBuffer();
     m_cbLight = new ConstantBuffer();
+	//m_fullscreenVB = 
 
     // -----------------------------
     // Input Layout
@@ -59,6 +63,12 @@ bool Renderer::CreateResources()
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    };
+
+    D3D11_INPUT_ELEMENT_DESC shadowDebugLayoutDesc[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     if (!m_shader->LoadFromFiles(
@@ -83,6 +93,17 @@ bool Renderer::CreateResources()
         return false;
     }
 
+    if(!m_shadowDebugShader->LoadFromFiles(
+        device,
+        L"ShadowDebugVS.hlsl",
+        L"ShadowDebugPS.hlsl",
+        shadowDebugLayoutDesc,
+		ARRAYSIZE(shadowDebugLayoutDesc)))
+    {
+        MessageBox(nullptr, L"Failed to load shadow debug shaders", L"Error", MB_OK);
+        return false;
+    }
+
     if (!m_mesh->CreateCube(device))
     {
         MessageBox(nullptr, L"Failed to create cube", L"Error", MB_OK);
@@ -94,6 +115,31 @@ bool Renderer::CreateResources()
         MessageBox(nullptr, L"Failed to create plane", L"Error", MB_OK);
         return false;
     }
+
+    struct DebugVertex
+    {
+        XMFLOAT3 Pos;
+        XMFLOAT2 UV;
+    };
+
+    DebugVertex quad[] =
+    {
+        { {-1, -1, 0}, {0, 1} },
+        { {-1,  1, 0}, {0, 0} },
+        { { 1, -1, 0}, {1, 1} },
+        { { 1,  1, 0}, {1, 0} },
+    };
+
+    D3D11_BUFFER_DESC bd{};
+    bd.ByteWidth = sizeof(quad);
+    bd.Usage = D3D11_USAGE_IMMUTABLE;
+    bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA init{};
+    init.pSysMem = quad;
+
+    device->CreateBuffer(&bd, &init, &m_fullscreenVB);
+
 
     // -----------------------------
     // Constant Buffers
@@ -139,7 +185,7 @@ bool Renderer::CreateResources()
         m_renderObjects.push_back(cube1);
 
         RenderObject* cube2 = new RenderObject(m_mesh);
-        cube2->GetTransform().SetPosition(XMFLOAT3(5.0f, 0.0f, 0.0f));
+        cube2->GetTransform().SetPosition(XMFLOAT3(3.0f, 2.0f, 0.0f));
         cube2->SetTexture(m_brickTexture);  
         m_renderObjects.push_back(cube2);
 
@@ -287,132 +333,27 @@ bool Renderer::CreateResources()
 
 void Renderer::Render()
 {
-    ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
-
-    ShadowPass();
-    ID3D11RenderTargetView* rtv = m_deviceResources->GetRenderTargetView();
-    ID3D11DepthStencilView* dsv = m_deviceResources->GetDepthStencilView();
-    context->OMSetRenderTargets(1, &rtv, dsv);
-
-    D3D11_VIEWPORT vp{};
-    vp.Width = (float)m_deviceResources->GetWidth();
-    vp.Height = (float)m_deviceResources->GetHeight();
-    vp.MinDepth = 0.0f;
-    vp.MaxDepth = 1.0f;
-    context->RSSetViewports(1, &vp);
-
-
-    float clearColor[4] =
-    {
-        m_clearColor.x,
-        m_clearColor.y,
-        m_clearColor.z,
-        m_clearColor.w
-    };
-
-    context->ClearRenderTargetView(rtv, clearColor);
-    if (dsv)
-        context->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
-
-    context->RSSetState(m_rasterizerState);
-    context->OMSetDepthStencilState(m_depthStencilState, 0);
-
-    // -----------------------------
-    // Camera + Matrices
-    // -----------------------------
-    float dt = 0.016f; // temporary
-
-    m_camera.Update(dt);
-
-    XMMATRIX view = m_camera.GetViewMatrix();
-    XMMATRIX proj = XMMatrixPerspectiveFovLH(
-        XM_PIDIV4,
-        m_deviceResources->GetAspectRatio(),
-        0.1f,
-        100.0f);
-
-    // -----------------------------
-    // Lighting
-    // -----------------------------
+    if (Input::IsKeyPressed(VK_F1))
+        ToggleShadowDebug();
    
-    
-    CBLight cb = {};
-    cb.LightCount = (int)m_lights.size();
-    cb.CameraPosition = m_camera.GetPosition();
+    ShadowPass();
 
-    for (int i = 0; i < cb.LightCount; i++)
+    if (m_showShadowDebug)
     {
-        cb.Lights[i] = m_lights[i];
+        RenderShadowDebug();
     }
-
-    m_cbLight->Update(context, &cb);
-
-    // -----------------------------
-    // Bind pipeline
-    // -----------------------------
-    m_shader->Bind(context);
-
-    ID3D11Buffer* vsCB = m_cbPerObject->Get();
-    context->VSSetConstantBuffers(0, 1, &vsCB);
-
-    ID3D11Buffer* psCB = m_cbLight->Get();
-    context->PSSetConstantBuffers(1, 1, &psCB);
-
-    context->PSSetShaderResources(1, 1, &m_shadowMapSRV);
-    context->PSSetSamplers(0, 1, &m_samplerState);
-    context->PSSetSamplers(1, 1, &m_shadowMapSampler);
-
-
-    // -----------------------------
-    // Draw objects
-    // -----------------------------
-    for (size_t i = 0; i < m_renderObjects.size(); ++i)
+    else
     {
-        RenderObject* obj = m_renderObjects[i];
-
-        if (i < m_renderObjects.size() - 1)
-        {
-            XMFLOAT3 axis = (i == 0)
-                ? XMFLOAT3(0, 1, 0)
-                : XMFLOAT3(1, 0, 0);
-
-
-            obj->GetTransform().RotateAxisAngle(axis, dt * (i + 1));
-        }
-
-       
-
-        XMMATRIX world = obj->GetTransform().GetWorldMatrix();
-
-        // Compute inverse transpose (ignore translation)
-        XMMATRIX worldInvTranspose = XMMatrixTranspose(XMMatrixInverse(nullptr, world));
-
-        CBPerObject cbObj = {};
-        XMStoreFloat4x4(&cbObj.World, XMMatrixTranspose(world));
-        XMStoreFloat4x4(&cbObj.WorldInvTranspose, XMMatrixTranspose(worldInvTranspose));
-        XMStoreFloat4x4(&cbObj.View, XMMatrixTranspose(view));
-        XMStoreFloat4x4(&cbObj.Projection, XMMatrixTranspose(proj));
-        XMStoreFloat4x4(&cbObj.LightViewProj, XMMatrixTranspose(m_lightView * m_lightProj));
-
-
-        m_cbPerObject->Update(context, &cbObj);
-
-        ID3D11ShaderResourceView* texture = obj->GetTexture();
-        if (texture)
-        {
-            context->PSSetShaderResources(0, 1, &texture);
-        }
-
-        obj->GetMesh()->Draw(context);
+        MainRenderPass(); // your current scene draw code
     }
-
+   
     m_deviceResources->Present();
 }
 
 void Renderer::ShadowPass()
 {
 
-    auto context = m_deviceResources->GetDeviceContext();
+    ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
 
     ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
     context->PSSetShaderResources(1, 1, nullSRV);
@@ -469,8 +410,163 @@ void Renderer::ShadowPass()
     vp.MinDepth = 0;
     vp.MaxDepth = 1;
     context->RSSetViewports(1, &vp);
+}
+
+void Renderer::MainRenderPass()
+{
+    ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
+    ID3D11RenderTargetView* rtv = m_deviceResources->GetRenderTargetView();
+    ID3D11DepthStencilView* dsv = m_deviceResources->GetDepthStencilView();
+    context->OMSetRenderTargets(1, &rtv, dsv);
+
+    D3D11_VIEWPORT vp{};
+    vp.Width = (float)m_deviceResources->GetWidth();
+    vp.Height = (float)m_deviceResources->GetHeight();
+    vp.MinDepth = 0.0f;
+    vp.MaxDepth = 1.0f;
+    context->RSSetViewports(1, &vp);
+
+
+    float clearColor[4] =
+    {
+        m_clearColor.x,
+        m_clearColor.y,
+        m_clearColor.z,
+        m_clearColor.w
+    };
+
+    context->ClearRenderTargetView(rtv, clearColor);
+    if (dsv)
+        context->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH, 1.0f, 0);
+
+    context->RSSetState(m_rasterizerState);
+    context->OMSetDepthStencilState(m_depthStencilState, 0);
+
+    // -----------------------------
+    // Camera + Matrices
+    // -----------------------------
+    float dt = 0.016f; // temporary
+
+    m_camera.Update(dt);
+
+    XMMATRIX view = m_camera.GetViewMatrix();
+    XMMATRIX proj = XMMatrixPerspectiveFovLH(
+        XM_PIDIV4,
+        m_deviceResources->GetAspectRatio(),
+        0.1f,
+        100.0f);
+
+    // -----------------------------
+    // Lighting
+    // -----------------------------
+
+
+    CBLight cb = {};
+    cb.LightCount = (int)m_lights.size();
+    cb.CameraPosition = m_camera.GetPosition();
+
+    for (int i = 0; i < cb.LightCount; i++)
+    {
+        cb.Lights[i] = m_lights[i];
+    }
+
+    m_cbLight->Update(context, &cb);
+
+    // -----------------------------
+    // Bind pipeline
+    // -----------------------------
+    m_shader->Bind(context);
+
+    ID3D11Buffer* vsCB = m_cbPerObject->Get();
+    context->VSSetConstantBuffers(0, 1, &vsCB);
+
+    ID3D11Buffer* psCB = m_cbLight->Get();
+    context->PSSetConstantBuffers(1, 1, &psCB);
+
+    context->PSSetShaderResources(1, 1, &m_shadowMapSRV);
+    context->PSSetSamplers(0, 1, &m_samplerState);
+    context->PSSetSamplers(1, 1, &m_shadowMapSampler);
+
+
+    // -----------------------------
+    // Draw objects
+    // -----------------------------
+    for (size_t i = 0; i < m_renderObjects.size(); ++i)
+    {
+        RenderObject* obj = m_renderObjects[i];
+
+        if (i < m_renderObjects.size() - 1)
+        {
+            XMFLOAT3 axis = (i == 0)
+                ? XMFLOAT3(0, 1, 0)
+                : XMFLOAT3(1, 0, 0);
+
+
+            obj->GetTransform().RotateAxisAngle(axis, dt * (i + 1));
+        }
+
+
+
+        XMMATRIX world = obj->GetTransform().GetWorldMatrix();
+
+        // Compute inverse transpose (ignore translation)
+        XMMATRIX worldInvTranspose = XMMatrixTranspose(XMMatrixInverse(nullptr, world));
+
+        CBPerObject cbObj = {};
+        XMStoreFloat4x4(&cbObj.World, XMMatrixTranspose(world));
+        XMStoreFloat4x4(&cbObj.WorldInvTranspose, XMMatrixTranspose(worldInvTranspose));
+        XMStoreFloat4x4(&cbObj.View, XMMatrixTranspose(view));
+        XMStoreFloat4x4(&cbObj.Projection, XMMatrixTranspose(proj));
+        XMStoreFloat4x4(&cbObj.LightViewProj, XMMatrixTranspose(m_lightView * m_lightProj));
+
+
+        m_cbPerObject->Update(context, &cbObj);
+
+        ID3D11ShaderResourceView* texture = obj->GetTexture();
+        if (texture)
+        {
+            context->PSSetShaderResources(0, 1, &texture);
+        }
+
+        obj->GetMesh()->Draw(context);
+    }
 
 }
+
+void Renderer::RenderShadowDebug()
+{
+    ID3D11DeviceContext* ctx = m_deviceResources->GetDeviceContext();
+    ID3D11RenderTargetView* rtv = m_deviceResources->GetRenderTargetView();
+
+    ctx->OMSetRenderTargets(1, &rtv, nullptr);
+
+    float clear[4] = { 0,0,0,1 };
+    ctx->ClearRenderTargetView(rtv, clear);
+
+    D3D11_VIEWPORT vp{};
+    vp.Width = (float)m_deviceResources->GetWidth();
+    vp.Height = (float)m_deviceResources->GetHeight();
+    vp.MinDepth = 0;
+    vp.MaxDepth = 1;
+    ctx->RSSetViewports(1, &vp);
+
+    UINT stride = sizeof(float) * 5;  // 3 floats (pos) + 2 floats (uv) = 20 bytes
+    UINT offset = 0;
+    ctx->IASetVertexBuffers(0, 1, &m_fullscreenVB, &stride, &offset);
+    ctx->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+    ctx->IASetInputLayout(nullptr);
+
+    m_shadowDebugShader->Bind(ctx);
+
+    ctx->PSSetShaderResources(0, 1, &m_shadowMapSRV);
+    ctx->PSSetSamplers(0, 1, &m_samplerState);
+
+    ctx->OMSetDepthStencilState(nullptr, 0);
+    ctx->RSSetState(nullptr);
+
+    ctx->Draw(4, 0);
+}
+
 
 
 

@@ -29,14 +29,16 @@ namespace Engine::Graphics
 
         bool Initialize(DeviceResources* deviceResources);
         void Render();
-        void ShadowPass();
+        
         void SetClearColor(float r, float g, float b, float a);
         void Release();
 
     private:
+
         DeviceResources* m_deviceResources = nullptr;
         Shader* m_shader = nullptr;
 		Shader* m_shadowShader = nullptr;
+        Shader* m_shadowDebugShader = nullptr;
         Mesh* m_mesh = nullptr;
 		Mesh* m_planeMesh = nullptr;
         ConstantBuffer* m_cbPerObject = nullptr;
@@ -63,9 +65,14 @@ namespace Engine::Graphics
         XMMATRIX m_lightView;
         XMMATRIX m_lightProj;
 
+        // Shadow debug
+        bool m_showShadowDebug = false;
 
+        // Debug quad
+        ID3D11Buffer* m_fullscreenVB = nullptr;
 
-
+       
+     
         Camera m_camera;
 
 		vector<RenderObject*> m_renderObjects;
@@ -74,7 +81,10 @@ namespace Engine::Graphics
         XMFLOAT4 m_clearColor{ 0.1f, 0.5f, 0.6f, 1.0f };
 
         bool CreateResources();
-
+        void ShadowPass();
+        void MainRenderPass();
+        void RenderShadowDebug();
+        void ToggleShadowDebug() { m_showShadowDebug = !m_showShadowDebug; }
         void DestroyResources();
     };
 

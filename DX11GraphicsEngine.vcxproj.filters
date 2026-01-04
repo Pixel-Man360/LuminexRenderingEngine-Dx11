@@ -167,6 +167,12 @@
     <FxCompile Include="ShadowPS.hlsl">
       <Filter>Source Files\Engine\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="ShadowDebugVS.hlsl">
+      <Filter>Source Files\Engine\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="ShadowDebugPS.hlsl">
+      <Filter>Source Files\Engine\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

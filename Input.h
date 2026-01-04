@@ -10,6 +10,8 @@ namespace Engine::Core
         static void Update();
 
         static bool IsKeyDown(int key);
+        static bool IsKeyUp(int key);
+        static bool IsKeyPressed(int key);
         static bool IsMouseButtonDown(int button);
 
         static float GetMouseDeltaX();

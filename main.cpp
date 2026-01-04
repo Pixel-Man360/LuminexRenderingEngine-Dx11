@@ -5,6 +5,8 @@
 #include "Renderer.h"
 #include "Input.h"
 
+using namespace Engine::Core;
+
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
 {
@@ -47,6 +49,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
         window.ProcessEvents();
         input.Update();
         renderer.Render();
+
         // Sleep(1); // optional, to reduce CPU usage
     }
 

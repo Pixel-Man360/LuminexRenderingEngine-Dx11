@@ -32,6 +32,20 @@ bool Input::IsKeyDown(int key)
     return (GetAsyncKeyState(key) & 0x8000) != 0;
 }
 
+bool Input::IsKeyUp(int key)
+{
+	return !IsKeyDown(key);
+}
+
+bool Input::IsKeyPressed(int key)
+{
+    static SHORT prevKeyStates[256] = { 0 };
+    SHORT keyState = GetAsyncKeyState(key);
+    bool isPressed = (keyState & 0x8000) != 0 && (prevKeyStates[key] & 0x8000) == 0;
+    prevKeyStates[key] = keyState;
+    return isPressed;
+}
+
 bool Input::IsMouseButtonDown(int button)
 {
     return (GetAsyncKeyState(button) & 0x8000) != 0;

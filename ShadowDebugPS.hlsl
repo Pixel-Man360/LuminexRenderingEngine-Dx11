@@ -1,0 +1,16 @@
+Texture2D ShadowMap : register(t0);
+SamplerState Sampler : register(s0);
+
+struct PSInput
+{
+    float4 position : SV_POSITION;
+    float2 uv : TEXCOORD;
+};
+
+float4 main(PSInput input) : SV_TARGET
+{
+    float depth = ShadowMap.Sample(Sampler, input.uv).r;
+    
+    // Visualize depth (near = dark, far = white)
+    return float4(depth, depth, depth, 1.0f);
+}

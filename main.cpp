@@ -8,7 +8,7 @@
 using namespace Engine::Core;
 
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR, int)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     Engine::Core::Window window;
 	Engine::Core::Input input;

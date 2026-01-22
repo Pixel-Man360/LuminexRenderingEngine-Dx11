@@ -102,6 +102,9 @@
     <ClInclude Include="CBLight.h">
       <Filter>Source Files\Engine\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="CBShadow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11GraphicsEngine.rc">
@@ -173,6 +176,7 @@
     <FxCompile Include="ShadowDebugPS.hlsl">
       <Filter>Source Files\Engine\shaders</Filter>
     </FxCompile>
+    <FxCompile Include="hlsl SimpleVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

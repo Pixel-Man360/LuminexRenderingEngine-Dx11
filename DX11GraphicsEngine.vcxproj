@@ -133,6 +133,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CBLight.h" />
     <ClInclude Include="CBPerObject.h" />
+    <ClInclude Include="CBShadow.h" />
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="DeviceResources.h" />
     <ClInclude Include="framework.h" />

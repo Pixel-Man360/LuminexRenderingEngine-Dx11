@@ -1,0 +1,138 @@
+﻿#define LIGHT_DIRECTIONAL 0
+#define LIGHT_POINT 1
+#define MAX_LIGHTS 8
+
+static const float SHADOW_MAP_SIZE = 2048.0f;
+
+
+struct Light
+{
+    int Type;
+    float3 Color;
+
+    float3 Direction;
+    float Range;
+
+    float3 Position;
+    float Intensity;
+};
+
+cbuffer CBLight : register(b1)
+{
+    int LightCount;
+    float3 CameraPosition;
+    Light Lights[MAX_LIGHTS];
+};
+
+Texture2D DiffuseTexture : register(t0);
+Texture2D ShadowMap : register(t1);
+
+SamplerState TextureSampler : register(s0);
+SamplerComparisonState ShadowSampler : register(s1);
+
+struct PSInput
+{
+    float4 position : SV_POSITION;
+    float3 normalWS : NORMAL;
+    float3 posWS : POSITION;
+    float2 uv : TEXCOORD;
+    float4 shadowPos : TEXCOORD1;
+};
+
+// ----------------------------------------------------
+// SHADOW CALCULATION (Directional Light Only)
+// ----------------------------------------------------
+float CalculateShadow(float4 shadowPos, float3 normalWS, float3 lightDir)
+{
+    float3 projCoords = shadowPos.xyz / shadowPos.w;
+    projCoords.xy = projCoords.xy * 0.5f + 0.5f;
+    projCoords.y = 1.0f - projCoords.y;
+    
+    if (projCoords.x < 0.0f || projCoords.x > 1.0f ||
+        projCoords.y < 0.0f || projCoords.y > 1.0f ||
+        projCoords.z > 1.0f || projCoords.z < 0.0f)
+    {
+        return 1.0f;
+    }
+    
+    
+    float bias = max(0.0002f * (1.0f - dot(normalWS, lightDir)), 0.00005f);
+    
+    // PCF (5x5 kernel)
+    float shadow = 0.0f;
+
+    float receiverDepth = projCoords.z;
+    float shadowSoftness = lerp(1.5f, 3.0f, receiverDepth);
+    float texelSize = shadowSoftness / SHADOW_MAP_SIZE;
+
+    [unroll]
+    for (int x = -2; x <= 2; ++x)
+    {
+        [unroll]
+        for (int y = -2; y <= 2; ++y)
+        {
+            float2 offset = float2(x, y) * texelSize;
+            shadow += ShadowMap.SampleCmpLevelZero
+            (
+                ShadowSampler,
+                projCoords.xy + offset,
+                projCoords.z - bias
+            );
+        }
+    }
+    
+    shadow = shadow / 25.0f;
+    
+    return saturate(shadow + 0.1f);
+}
+
+float4 main(PSInput input) : SV_TARGET
+{
+    float3 N = normalize(input.normalWS);
+    float3 V = normalize(CameraPosition - input.posWS);
+    float3 albedo = DiffuseTexture.Sample(TextureSampler, input.uv).rgb;
+
+    float3 color = 0.0f;
+
+    for (int i = 0; i < LightCount; i++)
+    {
+        Light light = Lights[i];
+
+        float3 L;
+        float attenuation = 1.0f;
+        float lightShadow = 1.0f;
+
+        if (light.Type == LIGHT_DIRECTIONAL)
+        {
+            L = normalize(-light.Direction);
+            lightShadow = CalculateShadow(input.shadowPos, N, normalize(-light.Direction)); // ✔ shadows apply only to directional light
+        }
+        else
+        {
+            float3 lightVec = light.Position - input.posWS;
+            float dist = length(lightVec);
+            L = lightVec / dist;
+
+            attenuation = saturate(1.0f - dist / light.Range);
+            attenuation *= attenuation;
+
+            lightShadow = 1.0f; // ✔ point lights not shadowed (yet)
+        }
+
+        float diff = max(dot(N, L), 0.0f);
+
+        float3 H = normalize(L + V);
+        float spec = pow(max(dot(N, H), 0.0f), 16.0f);
+
+        float3 lighting =
+            (diff + spec * 0.25f) *
+            light.Color *
+            light.Intensity *
+            attenuation *
+            lightShadow;
+
+        color += lighting;
+    }
+
+    return float4(albedo * color, 1.0f);
+}

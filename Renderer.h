@@ -14,6 +14,9 @@
 using namespace DirectX;
 using namespace std;
 
+static const uint32_t NUM_CASCADES = 4;
+static const uint32_t SHADOW_MAP_SIZE = 2048;
+
 namespace Engine::Graphics
 {
 
@@ -43,6 +46,7 @@ namespace Engine::Graphics
 		Mesh* m_planeMesh = nullptr;
         ConstantBuffer* m_cbPerObject = nullptr;
         ConstantBuffer* m_cbLight = nullptr;
+		ConstantBuffer* m_cbShadow = nullptr;
         vector<Light> m_lights;
 
 
@@ -56,12 +60,26 @@ namespace Engine::Graphics
         ID3D11ShaderResourceView* m_brickTexture = nullptr;
         ID3D11ShaderResourceView* m_groundTexture = nullptr;
         ID3D11SamplerState* m_samplerState = nullptr;
-		ID3D11Texture2D* m_shadowMapTexture = nullptr;
+
+        ID3D11Texture2D* m_shadowMapArray = nullptr;
+        ID3D11DepthStencilView* m_shadowMapDSVArray = nullptr;
+        ID3D11ShaderResourceView* m_shadowMapSRVArray = nullptr;
+
+		/*ID3D11Texture2D* m_shadowMapTexture = nullptr;
 		ID3D11DepthStencilView* m_shadowMapDSV = nullptr;
-		ID3D11ShaderResourceView* m_shadowMapSRV = nullptr;
+		ID3D11ShaderResourceView* m_shadowMapSRV = nullptr;*/
+
 		ID3D11SamplerState* m_shadowMapSampler = nullptr;
 
         // Shadow matrices
+        XMMATRIX m_lightViewProj[NUM_CASCADES];
+        ID3D11DepthStencilView* m_shadowCascadeDSVs[NUM_CASCADES];
+
+        float    m_cascadeSplits[NUM_CASCADES];
+        float m_cascadeLambda = 0.6f;
+        float m_nearZ = 0.1f;
+        float m_farZ = 100.0f;
+
         XMMATRIX m_lightView;
         XMMATRIX m_lightProj;
 
@@ -84,6 +102,7 @@ namespace Engine::Graphics
         void ShadowPass();
         void MainRenderPass();
         void RenderShadowDebug();
+		void ComputeCascadeSplits();
         void ToggleShadowDebug() { m_showShadowDebug = !m_showShadowDebug; }
         void DestroyResources();
     };

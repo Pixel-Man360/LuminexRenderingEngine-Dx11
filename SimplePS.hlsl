@@ -1,6 +1,9 @@
 #define LIGHT_DIRECTIONAL 0
 #define LIGHT_POINT 1
 #define MAX_LIGHTS 8
+#define NUM_CASCADES 4
+
+static const float SHADOW_MAP_SIZE = 2048.0f;
 
 struct Light
 {
@@ -21,8 +24,14 @@ cbuffer CBLight : register(b1)
     Light Lights[MAX_LIGHTS];
 };
 
+cbuffer CBShadow : register(b2)
+{
+    float4x4 LightViewProj[NUM_CASCADES];
+    float4 CascadeSplits; // view-space split depths
+};
+
 Texture2D DiffuseTexture : register(t0);
-Texture2D ShadowMap : register(t1);
+Texture2DArray ShadowMapArray : register(t1);
 
 SamplerState TextureSampler : register(s0);
 SamplerComparisonState ShadowSampler : register(s1);
@@ -32,93 +41,143 @@ struct PSInput
     float4 position : SV_POSITION;
     float3 normalWS : NORMAL;
     float3 posWS : POSITION;
-    float2 uv : TEXCOORD;
-    float4 shadowPos : TEXCOORD1;
+    float2 uv : TEXCOORD0;
+    float4 posVS : TEXCOORD1; // view-space position
 };
 
 // ----------------------------------------------------
-// SHADOW CALCULATION (Directional Light Only)
+// CASCADE SELECTION
 // ----------------------------------------------------
-float CalculateShadow(float4 shadowPos)
+int SelectCascade(float viewDepth)
 {
-    float3 projCoords = shadowPos.xyz / shadowPos.w;
-    projCoords.xy = projCoords.xy * 0.5f + 0.5f;
-    projCoords.y = 1.0f - projCoords.y;
-    
-    if (projCoords.x < 0.0f || projCoords.x > 1.0f ||
-        projCoords.y < 0.0f || projCoords.y > 1.0f ||
-        projCoords.z > 1.0f || projCoords.z < 0.0f)
-    {
-        return 1.0f;
-    }
-    
-    // PCF (2x2 kernel)
-    float shadow = 0.0f;
-    float2 texelSize = 1.0f / float2(2048.0f, 2048.0f);
-    
-    for (int x = -1; x <= 1; ++x)
-    {
-        for (int y = -1; y <= 1; ++y)
-        {
-            float2 offset = float2(x, y) * texelSize;
-            shadow += ShadowMap.SampleCmpLevelZero(
-                ShadowSampler,
-                projCoords.xy + offset,
-                projCoords.z
-            );
-        }
-    }
-    
-    return shadow / 9.0f; // Average of 9 samples
+    if (viewDepth < CascadeSplits.x)
+        return 0;
+    if (viewDepth < CascadeSplits.y)
+        return 1;
+    if (viewDepth < CascadeSplits.z)
+        return 2;
+    return 3;
 }
 
+// ----------------------------------------------------
+// CASCADED SHADOW
+// ----------------------------------------------------
+float CalculateCascadedShadow(
+    float3 posWS,
+    float viewDepth,
+    float3 normalWS,
+    float3 lightDir)
+{
+    int cascadeIndex = SelectCascade(viewDepth);
+
+    float4 shadowPos = mul(float4(posWS, 1.0f), LightViewProj[cascadeIndex]);
+    float3 proj = shadowPos.xyz / shadowPos.w;
+
+    proj.xy = proj.xy * 0.5f + 0.5f;
+    proj.y = 1.0f - proj.y;
+
+    if (proj.x < 0 || proj.x > 1 ||
+        proj.y < 0 || proj.y > 1 ||
+        proj.z < 0 || proj.z > 1)
+        return 1.0f;
+
+    float bias = max(0.001f * (1.0f - dot(normalWS, lightDir)), 0.0002f);
+
+    // Poisson disk samples for high-quality soft shadows
+    static const float2 poissonDisk[16] = {
+        float2(-0.94201624, -0.39906216),
+        float2(0.94558609, -0.76890725),
+        float2(-0.094184101, -0.92938870),
+        float2(0.34495938, 0.29387760),
+        float2(-0.91588581, 0.45771432),
+        float2(-0.81544232, -0.87912464),
+        float2(-0.38277543, 0.27676845),
+        float2(0.97484398, 0.75648379),
+        float2(0.44323325, -0.97511554),
+        float2(0.53742981, -0.47373420),
+        float2(-0.26496911, -0.41893023),
+        float2(0.79197514, 0.19090188),
+        float2(-0.24188840, 0.99706507),
+        float2(-0.81409955, 0.91437590),
+        float2(0.19984126, 0.78641367),
+        float2(0.14383161, -0.14100790)
+    };
+    
+    // Softness radius - VERY large because shadow frustum covers huge area
+    float softness = 7.0f / SHADOW_MAP_SIZE;
+    
+    float shadow = 0.0f;
+    
+    [unroll]
+    for (int i = 0; i < 16; ++i)
+    {
+        float2 offset = poissonDisk[i] * softness;
+        shadow += ShadowMapArray.SampleCmpLevelZero(
+            ShadowSampler,
+            float3(proj.xy + offset, cascadeIndex),
+            proj.z - bias
+        );
+    }
+
+    return shadow / 16.0f;
+}
+
+// ----------------------------------------------------
+// PIXEL ENTRY POINT
+// ----------------------------------------------------
 float4 main(PSInput input) : SV_TARGET
 {
     float3 N = normalize(input.normalWS);
     float3 V = normalize(CameraPosition - input.posWS);
+
     float3 albedo = DiffuseTexture.Sample(TextureSampler, input.uv).rgb;
 
-    float3 color = 0.0f;
+    float viewDepth = abs(input.posVS.z);
 
-    for (int i = 0; i < LightCount; i++)
+    // Ambient light so shadows aren't pitch black
+    float3 ambient = albedo * 0.15f;
+    float3 color = ambient;
+
+    for (int i = 0; i < LightCount; ++i)
     {
         Light light = Lights[i];
 
         float3 L;
         float attenuation = 1.0f;
-        float lightShadow = 1.0f;
+        float shadow = 1.0f;
 
         if (light.Type == LIGHT_DIRECTIONAL)
         {
             L = normalize(-light.Direction);
-            lightShadow = CalculateShadow(input.shadowPos); // ✔ shadows apply only to directional light
+            shadow = CalculateCascadedShadow(
+                input.posWS,
+                viewDepth,
+                N,
+                L
+            );
         }
         else
         {
-            float3 lightVec = light.Position - input.posWS;
-            float dist = length(lightVec);
-            L = lightVec / dist;
+            float3 toLight = light.Position - input.posWS;
+            float dist = length(toLight);
+            L = toLight / dist;
 
             attenuation = saturate(1.0f - dist / light.Range);
             attenuation *= attenuation;
-
-            lightShadow = 1.0f; // ✔ point lights not shadowed (yet)
         }
 
         float diff = max(dot(N, L), 0.0f);
-
         float3 H = normalize(L + V);
         float spec = pow(max(dot(N, H), 0.0f), 16.0f);
 
-        float3 lighting =
+        color +=
+            albedo *
             (diff + spec * 0.25f) *
             light.Color *
             light.Intensity *
             attenuation *
-            lightShadow;
-
-        color += lighting;
+            shadow;
     }
 
-    return float4(albedo * color, 1.0f);
+    return float4(color, 1.0f);
 }

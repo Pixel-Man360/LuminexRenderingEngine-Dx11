@@ -4,7 +4,6 @@ cbuffer CBPerObject : register(b0)
     float4x4 WorldInvTranspose;
     float4x4 View;
     float4x4 Projection;
-    float4x4 LightViewProj;
 };
 
 struct VSInput
@@ -20,7 +19,7 @@ struct VSOutput
     float3 normalWS : NORMAL;
     float3 posWS : POSITION;
     float2 uv : TEXCOORD;
-    float4 shadowPos : TEXCOORD1;
+    float4 posVS : TEXCOORD1; // view-space position
 };
 
 VSOutput main(VSInput input)
@@ -31,16 +30,12 @@ VSOutput main(VSInput input)
     output.posWS = posWorld.xyz;
 
     float4 posView = mul(posWorld, View);
+    output.posVS = posView;
+
     output.position = mul(posView, Projection);
 
-    output.normalWS = normalize(
-        mul(input.normal, (float3x3) WorldInvTranspose)
-    );
-
+    output.normalWS = normalize(mul(input.normal, (float3x3) WorldInvTranspose));
     output.uv = input.uv;
-
-    // ✔ Light-space projection (REQUIRED for shadow mapping)
-    output.shadowPos = mul(posWorld, LightViewProj);
 
     return output;
 }

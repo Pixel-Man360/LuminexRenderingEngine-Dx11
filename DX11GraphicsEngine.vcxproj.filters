@@ -52,6 +52,9 @@
     <Filter Include="Source Files\Engine\shaders">
       <UniqueIdentifier>{f3d73eb3-71f9-444d-9af6-a40af0db419b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Engine\Scene">
+      <UniqueIdentifier>{bb1aa446-21fa-40ad-8a3a-b53a9b50abee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -87,9 +90,6 @@
     <ClInclude Include="Camera.h">
       <Filter>Source Files\Engine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>Source Files\Engine\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="RenderObject.h">
       <Filter>Source Files\Engine\Graphics</Filter>
     </ClInclude>
@@ -104,6 +104,15 @@
     </ClInclude>
     <ClInclude Include="CBShadow.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneObject.h">
+      <Filter>Source Files\Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Source Files\Engine\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>Source Files\Engine\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -150,11 +159,17 @@
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files\Engine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>Source Files\Engine\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="RenderObject.cpp">
       <Filter>Source Files\Engine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneObject.cpp">
+      <Filter>Source Files\Engine\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>Source Files\Engine\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>Source Files\Engine\Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -176,7 +191,6 @@
     <FxCompile Include="ShadowDebugPS.hlsl">
       <Filter>Source Files\Engine\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="hlsl SimpleVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

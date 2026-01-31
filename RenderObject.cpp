@@ -1,10 +1,12 @@
 #include "RenderObject.h"
 #include "Mesh.h"
 
+// Force recompile to fix ODR violation with Transform.h changes
+
 using namespace Engine::Graphics;
 
 RenderObject::RenderObject(Mesh* mesh)
-    : m_mesh(mesh)
+    : m_mesh(mesh), m_transform()
 {
 }
 

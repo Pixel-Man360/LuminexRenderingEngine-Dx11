@@ -1,0 +1,28 @@
+﻿#pragma once
+#include <string>
+#include <DirectXMath.h>
+
+class SceneObject
+{
+public:
+	SceneObject(int32_t id, const std::string& name);
+
+	uint32_t GetID() const { return m_id; }
+	const std::string& GetName() const { return m_name; }
+
+	DirectX::XMFLOAT3& GetPosition() { return m_position; }
+	DirectX::XMFLOAT3& GetRotation() { return m_rotation; }
+	DirectX::XMFLOAT3& GetScale() { return m_scale; }
+
+	DirectX::XMMATRIX& GetWorldMatrix() const;
+
+private:
+
+	uint32_t m_id;
+	std::string m_name;
+
+	DirectX::XMFLOAT3 m_position = { 0, 0, 0 };
+	DirectX::XMFLOAT3 m_rotation = { 0, 0, 0 };
+	DirectX::XMFLOAT3 m_scale = { 1, 1, 1 };
+};
+

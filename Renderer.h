@@ -9,10 +9,7 @@
 #include "CBLight.h"
 #include "ConstantBuffer.h"
 
-
-
-using namespace DirectX;
-using namespace std;
+// Note: Don't use "using namespace" in headers - it causes conflicts
 
 static const uint32_t NUM_CASCADES = 4;
 static const uint32_t SHADOW_MAP_SIZE = 2048;
@@ -47,7 +44,7 @@ namespace Engine::Graphics
         ConstantBuffer* m_cbPerObject = nullptr;
         ConstantBuffer* m_cbLight = nullptr;
 		ConstantBuffer* m_cbShadow = nullptr;
-        vector<Light> m_lights;
+        std::vector<Light> m_lights;
 
 
 
@@ -72,7 +69,7 @@ namespace Engine::Graphics
 		ID3D11SamplerState* m_shadowMapSampler = nullptr;
 
         // Shadow matrices
-        XMMATRIX m_lightViewProj[NUM_CASCADES];
+        DirectX::XMMATRIX m_lightViewProj[NUM_CASCADES];
         ID3D11DepthStencilView* m_shadowCascadeDSVs[NUM_CASCADES];
 
         float    m_cascadeSplits[NUM_CASCADES];
@@ -80,8 +77,8 @@ namespace Engine::Graphics
         float m_nearZ = 0.1f;
         float m_farZ = 100.0f;
 
-        XMMATRIX m_lightView;
-        XMMATRIX m_lightProj;
+        DirectX::XMMATRIX m_lightView;
+        DirectX::XMMATRIX m_lightProj;
 
         // Shadow debug
         bool m_showShadowDebug = false;
@@ -93,10 +90,10 @@ namespace Engine::Graphics
      
         Camera m_camera;
 
-		vector<RenderObject*> m_renderObjects;
+		std::vector<RenderObject*> m_renderObjects;
 
 
-        XMFLOAT4 m_clearColor{ 0.1f, 0.5f, 0.6f, 1.0f };
+        DirectX::XMFLOAT4 m_clearColor{ 0.1f, 0.5f, 0.6f, 1.0f };
 
         bool CreateResources();
         void ShadowPass();

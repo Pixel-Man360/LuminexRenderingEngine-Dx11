@@ -10,6 +10,7 @@
 #include <DirectXMath.h>
 #include <WICTextureLoader.h>
 
+// Force recompile - Transform.h layout changed
 
 using namespace Engine::Graphics;
 using namespace Engine::Core;
@@ -78,8 +79,6 @@ void GetFrustrumConrersWS(const XMMATRIX& view, const XMMATRIX& proj, float near
         corners.push_back(cornerFarWS);
     }
 }
-
-
 
 
 Renderer::Renderer() = default;

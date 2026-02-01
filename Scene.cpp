@@ -1,59 +1,87 @@
 #include "Scene.h"
-#include "SceneObject.h"
 
 using namespace Engine::Graphics;
+using namespace std;
 
-Scene::Scene() = default;
-Scene::~Scene() { Clear(); }
+Scene::Scene() {}
+Scene::~Scene() {}
 
-SceneObject* Scene::CreateObject(const char* name)
+SceneObject* Scene::CreateObject(const string& name)
 {
-	auto object = std::make_unique<SceneObject>(name);
-	SceneObject* objectPtr = object.get();
-
-	m_objects.push_back(std::move(object));
-	return objectPtr;
+	auto obj = make_unique<SceneObject>(name);
+	SceneObject* objPtr = obj.get();
+	m_objects.emplace_back(std::move(obj));
+	return objPtr;
 }
-
 
 void Scene::DestroyObject(SceneObject* object)
 {
-	if (!object) return;
+    if (!object)
+        return;
 
-	m_objects.erase
-	(
-		std::remove_if
-		(
-			m_objects.begin(),
-			m_objects.end(),
-			[object](const std::unique_ptr<SceneObject>& objPtr)
-			{
-				return objPtr.get() == object;
-			}
-		),
-		m_objects.end()
-	);
+
+    if (m_selectedObject == object)
+        m_selectedObject = nullptr;
+
+    m_objects.erase
+    (
+        remove_if(m_objects.begin(), m_objects.end(),
+        [&](const std::unique_ptr<SceneObject>& o)
+        {
+            return o.get() == object;
+        }),
+        m_objects.end()
+    );
+}
+
+const vector<unique_ptr<SceneObject>>& Scene::GetObjects() const
+{
+    return m_objects;
+}
+
+SceneObject* Scene::GetSelectedObject() const
+{
+    return m_selectedObject;
+}
+
+void Scene::SelectObject(SceneObject* object)
+{
+    if (m_selectedObject)
+        m_selectedObject->SetSelected(false);
+
+
+    m_selectedObject = object;
+
+
+    if (m_selectedObject)
+        m_selectedObject->SetSelected(true);
 }
 
 
-void Scene::Clear()
+void Scene::ClearSelection()
 {
-	m_objects.clear();
+    if (m_selectedObject)
+        m_selectedObject->SetSelected(false);
+
+
+    m_selectedObject = nullptr;
 }
 
-const std::vector<std::unique_ptr<SceneObject>>& Scene::GetObjects() const
+vector<SceneObject*> Scene::GetRootObjects() const
 {
-	return m_objects;
+    vector<SceneObject*> roots;
+
+    for (auto& obj : m_objects)
+    {
+        if (obj->GetParent() == nullptr)
+            roots.push_back(obj.get());
+    }
+
+    return roots;
 }
 
-SceneObject* Scene::FindByID(uint32_t id) const
+
+void Scene::Update(float deltaTime)
 {
-	for (const auto& object : m_objects)
-	{
-		if (object->GetID() == id)
-		{
-			return object.get();
-		}
-	}
-	return nullptr;
+    // Update logic for the scene
 }

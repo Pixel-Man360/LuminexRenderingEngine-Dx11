@@ -55,6 +55,15 @@
     <Filter Include="Source Files\Engine\Scene">
       <UniqueIdentifier>{bb1aa446-21fa-40ad-8a3a-b53a9b50abee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Engine\External">
+      <UniqueIdentifier>{813d8886-1dfc-4ae8-804c-8f86c68d8988}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\External\ImGui">
+      <UniqueIdentifier>{31d4130e-69e0-4774-b755-c790f834a927}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Engine\Editor">
+      <UniqueIdentifier>{145eb925-d713-437f-867a-6afddd3df56c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -114,6 +123,33 @@
     <ClInclude Include="Scene.h">
       <Filter>Source Files\Engine\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Editor.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\External\ImGui\imgui.h">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\External\ImGui\imgui_impl_dx11.h">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\External\ImGui\imgui_impl_win32.h">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\External\ImGui\imgui_internal.h">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\External\ImGui\imconfig.h">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\External\ImGui\imstb_rectpack.h">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\External\ImGui\imstb_textedit.h">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\External\ImGui\imstb_truetype.h">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11GraphicsEngine.rc">
@@ -170,6 +206,27 @@
     </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>Source Files\Engine\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor.cpp">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\External\ImGui\imgui.cpp">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\External\ImGui\imgui_draw.cpp">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\External\ImGui\imgui_impl_dx11.cpp">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\External\ImGui\imgui_impl_win32.cpp">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\External\ImGui\imgui_tables.cpp">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\External\ImGui\imgui_widgets.cpp">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

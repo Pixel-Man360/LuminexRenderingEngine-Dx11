@@ -2,25 +2,32 @@
 #include <vector>
 #include <memory>
 
+#include "SceneObject.h"
+
 namespace Engine::Graphics
 {
-	class SceneObject;
+    class Scene
+    {
+    public:
+        Scene();
+        ~Scene();
 
-	class Scene
-	{
-	public:
-		Scene();
-		~Scene();
+        SceneObject* CreateObject(const std::string& name = "SceneObject");
+        void DestroyObject(SceneObject* object);
 
-		SceneObject* CreateObject(const char* name = "SceneObject");
-		void DestroyObject(SceneObject* object);
+        const std::vector<std::unique_ptr<SceneObject>>& GetObjects() const;
+		SceneObject* GetSelectedObject() const;
 
-		void Clear();
+		void SelectObject(SceneObject* object);
+		void ClearSelection();
 
-		const std::vector<std::unique_ptr<SceneObject>>& GetObjects() const;
-		SceneObject* FindByID(uint32_t id) const;
+        // Root objects = no parent
+        std::vector<SceneObject*> GetRootObjects() const;
 
-	private:
-		std::vector<std::unique_ptr<SceneObject>> m_objects;
-	};
+		void Update(float deltaTime);
+
+    private:
+        std::vector<std::unique_ptr<SceneObject>> m_objects;
+		SceneObject* m_selectedObject = nullptr;
+    };
 }

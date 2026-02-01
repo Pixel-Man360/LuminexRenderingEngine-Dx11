@@ -1,53 +1,95 @@
 #include "SceneObject.h"
 
 using namespace Engine::Graphics;
+using namespace DirectX;
 
-uint32_t SceneObject::s_nextID = 1;
-
-SceneObject::SceneObject() : m_id(s_nextID++), m_name("SceneObject")
+SceneObject::SceneObject(const std::string& name)
+    : m_name(name)
 {
 }
 
-SceneObject::SceneObject(const std::string& name) : m_id(s_nextID++), m_name(name)
+SceneObject::~SceneObject()
 {
+    // Detach children safely
+    for (SceneObject* child : m_children)
+    {
+        child->m_parent = nullptr;
+    }
+    m_children.clear();
 }
 
 const std::string& SceneObject::GetName() const
 {
-	return m_name;
+    return m_name;
 }
 
 void SceneObject::SetName(const std::string& name)
 {
-	m_name = name;
-}
-
-uint32_t SceneObject::GetID() const
-{
-	return m_id;
+    m_name = name;
 }
 
 Transform& SceneObject::GetTransform()
 {
-	return m_transform;
+    return m_transform;
 }
 
-void SceneObject::SetMesh(Mesh* mesh)
+const Transform& SceneObject::GetTransform() const
 {
-	m_mesh = mesh;
+    return m_transform;
 }
 
-Mesh* SceneObject::GetMesh() const
+void SceneObject::SetParent(SceneObject* parent)
 {
-	return m_mesh;
+    if (m_parent == parent)
+        return;
+
+    // Remove from old parent
+    if (m_parent)
+    {
+        auto& siblings = m_parent->m_children;
+        siblings.erase(
+            std::remove(siblings.begin(), siblings.end(), this),
+            siblings.end()
+        );
+    }
+
+    m_parent = parent;
+
+    if (m_parent)
+    {
+        m_parent->m_children.push_back(this);
+    }
 }
 
-void SceneObject::SetVisible(bool visible)
+SceneObject* SceneObject::GetParent() const
 {
-	m_visible = visible;
+    return m_parent;
 }
 
-bool SceneObject::IsVisible() const
+const std::vector<SceneObject*>& SceneObject::GetChildren() const
 {
-	return m_visible;
+    return m_children;
+}
+
+XMMATRIX SceneObject::GetWorldMatrix() const
+{
+    XMMATRIX local = m_transform.GetWorldMatrix();
+
+    if (m_parent)
+    {
+        return local * m_parent->GetWorldMatrix();
+    }
+
+    return local;
+}
+
+
+bool SceneObject::IsSelectable() const
+{
+    return true;
+}
+
+void SceneObject::SetSelected(bool selected)
+{
+	m_selected = selected;
 }

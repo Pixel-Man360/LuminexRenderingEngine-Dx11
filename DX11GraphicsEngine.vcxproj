@@ -107,6 +107,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -123,6 +124,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -136,6 +138,15 @@
     <ClInclude Include="CBShadow.h" />
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="DeviceResources.h" />
+    <ClInclude Include="Editor.h" />
+    <ClInclude Include="Engine\External\ImGui\imconfig.h" />
+    <ClInclude Include="Engine\External\ImGui\imgui.h" />
+    <ClInclude Include="Engine\External\ImGui\imgui_impl_dx11.h" />
+    <ClInclude Include="Engine\External\ImGui\imgui_impl_win32.h" />
+    <ClInclude Include="Engine\External\ImGui\imgui_internal.h" />
+    <ClInclude Include="Engine\External\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="Engine\External\ImGui\imstb_textedit.h" />
+    <ClInclude Include="Engine\External\ImGui\imstb_truetype.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Light.h" />
@@ -162,6 +173,13 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="ConstantBuffer.cpp" />
     <ClCompile Include="DeviceResources.cpp" />
+    <ClCompile Include="Editor.cpp" />
+    <ClCompile Include="Engine\External\ImGui\imgui.cpp" />
+    <ClCompile Include="Engine\External\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="Engine\External\ImGui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="Engine\External\ImGui\imgui_impl_win32.cpp" />
+    <ClCompile Include="Engine\External\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="Engine\External\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />

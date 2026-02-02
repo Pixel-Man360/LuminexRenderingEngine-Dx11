@@ -1,5 +1,2 @@
-﻿  imgui_draw.cpp
-  imgui_impl_dx11.cpp
-  imgui_widgets.cpp
-  Generating Code...
+﻿  main.cpp
   DX11GraphicsEngine.vcxproj -> K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\LuminexRenderingEngine-Dx11.exe

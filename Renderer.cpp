@@ -460,7 +460,7 @@ void Renderer::Render()
         MainRenderPass(); // your current scene draw code
     }
    
-    m_deviceResources->Present();
+    // Note: Present() removed - call it from main.cpp after ImGui rendering
 }
 
 void Renderer::ShadowPass()

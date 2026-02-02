@@ -1,5 +1,9 @@
 #include <Windows.h>
 #include <iostream>
+#include <imgui.h>
+#include <imgui_impl_win32.h>
+#include <imgui_impl_dx11.h>
+
 #include "Window.h"
 #include "DeviceResources.h"
 #include "Renderer.h"
@@ -30,6 +34,21 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
         return -1;
     }
 
+    // ==================== ImGui Init ====================
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGuiIO& io = ImGui::GetIO();
+    // Note: Docking and Viewports require the 'docking' branch of ImGui
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplWin32_Init(window.GetHwnd());
+    ImGui_ImplDX11_Init(deviceResources.GetDevice(), deviceResources.GetDeviceContext());
+    // ====================================================
+
     window.SetResizeCallback([&deviceResources](int w, int h)
         {
             deviceResources.Resize(w, h);
@@ -48,10 +67,39 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     {
         window.ProcessEvents();
         input.Update();
+
+        ImGui_ImplDX11_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
+
+        // ======= TEMP EDITOR UI (test) =======
+        ImGui::Begin("Inspector");
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+        ImGui::End();
+        // =====================================
+
+        ImGui::Render();
+
+        // Render scene first
         renderer.Render();
 
-        // Sleep(1); // optional, to reduce CPU usage
+        // Then render ImGui on top
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+        {
+            ImGui::UpdatePlatformWindows();
+            ImGui::RenderPlatformWindowsDefault();
+        }
+
+        // Now present the frame
+        deviceResources.Present();
     }
+
+
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 
     return 0;
 }

@@ -1,14 +1,19 @@
-#include "Window.h"
+﻿#include "Window.h"
 #include "resource.h"
 #include "Input.h"
+#include <imgui.h>
 #include <cassert>
 #include <string>
+#include <imgui_impl_win32.h>
+
+
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 using namespace Engine::Core;
 
 namespace
 {
-    const wchar_t* WIN_CLASS_NAME = L"SimpleEngineWindowClass";
+    const wchar_t* WIN_CLASS_NAME = L"Luminex";
 }
 
 Window::Window() = default;
@@ -85,6 +90,7 @@ bool Window::ShouldClose() const
     return m_shouldClose;
 }
 
+
 LRESULT CALLBACK Window::StaticWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     if (message == WM_NCCREATE)
@@ -106,40 +112,42 @@ LRESULT CALLBACK Window::StaticWndProc(HWND hWnd, UINT message, WPARAM wParam, L
 
 LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+        return true;
+
     switch (message)
     {
     case WM_CLOSE:
     case WM_DESTROY:
-    {
-        m_shouldClose = true;
-        PostQuitMessage(0);
-        return 0;
-    }
+        {
+            m_shouldClose = true;
+            PostQuitMessage(0);
+            return 0;
+        }
 
     case WM_SIZE:
-    {
-        int width = LOWORD(lParam);
-        int height = HIWORD(lParam);
-        m_width = width;
-        m_height = height;
-        if (m_resizeCallback)
         {
-            m_resizeCallback(width, height);
+            int width = LOWORD(lParam);
+            int height = HIWORD(lParam);
+            m_width = width;
+            m_height = height;
+            if (m_resizeCallback)
+            {
+                m_resizeCallback(width, height);
+            }
+            return 0;
         }
-        return 0;
-    }
 
     case WM_MOUSEWHEEL:
         {
-            // GET_WHEEL_DELTA_WPARAM returns delta in multiples of WHEEL_DELTA (120)
-            // Normalize it to -1.0 to 1.0 range
             float delta = GET_WHEEL_DELTA_WPARAM(wParam) / 120.0f;
             Input::OnMouseWheelMoved(delta);
             return 0;
         }
 
-
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
 }
+

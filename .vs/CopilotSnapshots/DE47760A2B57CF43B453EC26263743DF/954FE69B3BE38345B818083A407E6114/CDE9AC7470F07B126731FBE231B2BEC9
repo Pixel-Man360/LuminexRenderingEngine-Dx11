@@ -1,0 +1,103 @@
+﻿#include <Windows.h>
+#include <iostream>
+#include <imgui.h>
+#include <imgui_impl_win32.h>
+#include <imgui_impl_dx11.h>
+
+#include "Window.h"
+#include "DeviceResources.h"
+#include "Renderer.h"
+#include "Input.h"
+
+using namespace Engine::Core;
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
+{
+    Engine::Core::Window window;
+	Engine::Core::Input input;
+
+    if (!window.Create(L"Luminex", 1280, 720, hInstance))
+    {
+        MessageBox(nullptr, L"Failed to create window", L"Error", MB_OK);
+        return -1;
+    }
+
+    input.Initialize(window.GetHwnd());
+   
+
+
+    Engine::Graphics::DeviceResources deviceResources;
+    if (!deviceResources.Initialize(window.GetHwnd(), window.GetWidth(), window.GetHeight()))
+    {
+        MessageBox(nullptr, L"Failed to initialize Direct3D", L"Error", MB_OK);
+        return -1;
+    }
+
+    // ==================== ImGui Init ====================
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGuiIO& io = ImGui::GetIO();
+    // Note: Docking and Viewports require the 'docking' branch of ImGui
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplWin32_Init(window.GetHwnd());
+    ImGui_ImplDX11_Init(deviceResources.GetDevice(), deviceResources.GetDeviceContext());
+    // ====================================================
+
+    window.SetResizeCallback([&deviceResources](int w, int h)
+        {
+            deviceResources.Resize(w, h);
+        });
+
+    Engine::Graphics::Renderer renderer;
+    if (!renderer.Initialize(&deviceResources))
+    {
+        MessageBox(nullptr, L"Failed to initialize renderer", L"Error", MB_OK);
+        return -1;
+    }
+
+    renderer.SetClearColor(0.247f, 0.557f, 0.651f, 1.0f);
+
+    while (!window.ShouldClose())
+    {
+        window.ProcessEvents();
+        input.Update();
+
+        ImGui_ImplDX11_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+        ImGui::NewFrame();
+
+        // ======= TEMP EDITOR UI (test) =======
+        ImGui::Begin("Editor");
+        ImGui::Text("Luminex Engine");
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+        ImGui::End();
+        // =====================================
+
+        ImGui::Render();
+
+
+        renderer.Render();
+
+        // Render ImGui on top
+        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+         if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+         {
+             ImGui::UpdatePlatformWindows();
+             ImGui::RenderPlatformWindowsDefault();
+         }
+    }
+
+
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+
+    return 0;
+}

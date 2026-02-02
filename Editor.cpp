@@ -6,11 +6,7 @@
 
 using namespace Engine::Editor;
 
-void Editor::Initialize(
-    HWND__* hwnd,
-    ID3D11Device* device,
-    ID3D11DeviceContext* context
-)
+void Editor::Initialize( HWND__* hwnd, ID3D11Device* device, ID3D11DeviceContext* context )
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -34,7 +30,7 @@ void Editor::BeginFrame()
 
 void Editor::Draw()
 {
-    // Empty for now – we'll fill this in D1
+    
 }
 
 void Editor::EndFrame()

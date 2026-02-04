@@ -7,8 +7,8 @@
 #include "Engine/Core/Window.h"
 #include "DeviceResources.h"
 #include "Renderer.h"
-#include "Editor.h"
-#include "StatsPanel.h"
+#include "Engine/Editor/Editor.h"
+#include "Engine/Editor/StatsPanel.h"
 #include "Engine/Core/Input.h"
 
 using namespace Engine::Core;

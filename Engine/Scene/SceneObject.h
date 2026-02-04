@@ -2,8 +2,12 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <d3d11.h>
 
 #include "Transform.h"
+#include "LightComponent.h"
+
+namespace Engine::Graphics {class Mesh;}
 
 namespace Engine::Scene
 {
@@ -14,7 +18,7 @@ namespace Engine::Scene
         ~SceneObject();
 
         const std::string& GetName() const;
-		void SetName(const std::string& name);
+        void SetName(const std::string& name);
 
 
         Transform& GetTransform();
@@ -27,8 +31,21 @@ namespace Engine::Scene
 
         DirectX::XMMATRIX GetWorldMatrix() const;
 
+        void SetMesh(Engine::Graphics::Mesh* mesh);
+        Engine::Graphics::Mesh* GetMesh() const;
+
+        void SetTexture(ID3D11ShaderResourceView* texture);
+        ID3D11ShaderResourceView* GetTexture() const;
+
+        // Light component
+        void AddLightComponent();
+        void RemoveLightComponent();
+        LightComponent* GetLightComponent() const;
+        bool HasLight() const;
+
+        bool HasRenderable() const;
         bool IsSelectable() const;
-		void SetSelected(bool selected);
+        void SetSelected(bool selected);
 
     private:
         std::string m_name;
@@ -37,6 +54,11 @@ namespace Engine::Scene
         SceneObject* m_parent = nullptr;
         std::vector<SceneObject*> m_children;
 
-		bool m_selected = false;
+        Engine::Graphics::Mesh* m_mesh = nullptr;
+        ID3D11ShaderResourceView* m_texture = nullptr;
+        
+        std::unique_ptr<LightComponent> m_lightComponent = nullptr;
+
+        bool m_selected = false;
     };
 }

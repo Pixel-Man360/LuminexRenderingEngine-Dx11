@@ -1,0 +1,40 @@
+﻿// InspectorPanel.cpp
+#include "InspectorPanel.h"
+#include "imgui.h"
+#include "../Scene/Transform.h"
+#include <DirectXMath.h>
+
+using namespace DirectX;
+using namespace Engine::Editor;
+
+void InspectorPanel::Draw(EditorContext& context)
+{
+    ImGui::Begin("Inspector");
+
+    if (!context.SelectedObject)
+    {
+        ImGui::End();
+        return;
+    }
+
+    auto& transform = context.SelectedObject->GetTransform();
+
+    ImGui::Text("Transform");
+
+    XMFLOAT3 pos = transform.GetPosition();
+	XMFLOAT4 rot = transform.GetRotation();
+    XMFLOAT3 scale = transform.GetScale();
+
+    if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
+        transform.SetPosition(pos);
+
+	if (ImGui::DragFloat4("Rotation", &rot.x, 0.1f))
+    {
+        transform.SetRotation(rot);
+    }
+
+    if (ImGui::DragFloat3("Scale", &scale.x, 0.1f))
+        transform.SetScale(scale);
+
+    ImGui::End();
+}

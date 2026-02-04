@@ -5,20 +5,25 @@
 #include <imgui_impl_dx11.h>
 
 #include "Engine/Core/Window.h"
-#include "DeviceResources.h"
-#include "Renderer.h"
+#include "Engine/Graphics/DeviceResources.h"
+#include "Engine/Graphics/Renderer.h"
 #include "Engine/Editor/Editor.h"
+#include "Engine/Editor/EditorContext.h"
 #include "Engine/Editor/StatsPanel.h"
 #include "Engine/Core/Input.h"
+#include "Engine/Scene/Scene.h"
 
 using namespace Engine::Core;
+using namespace Engine::Graphics;
+using namespace Engine::Editor;
+using namespace Engine::Scene;
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
-    Engine::Core::Window window;
-	Engine::Core::Input input;
-	Engine::Editor::Editor editor;
+    Window window;
+	Input input;
+	Editor editor;
 
     if (!window.Create(L"Luminex", 1280, 720, hInstance))
     {
@@ -38,16 +43,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     }
 
 
-    editor.Initialize(window.GetHwnd(), deviceResources.GetDevice(), deviceResources.GetDeviceContext());
-    editor.AddPanel(std::make_unique<Engine::Editor::StatsPanel>());
-
-
     window.SetResizeCallback([&deviceResources](int w, int h)
         {
             deviceResources.Resize(w, h);
         });
 
+    // Create the scene
+    Scene scene;
+
     Engine::Graphics::Renderer renderer;
+    
+    // Set active scene BEFORE Initialize (CreateResources needs it)
+    renderer.SetActiveScene(&scene);
+    
     if (!renderer.Initialize(&deviceResources))
     {
         MessageBox(nullptr, L"Failed to initialize renderer", L"Error", MB_OK);
@@ -56,10 +64,23 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 
     renderer.SetClearColor(0.247f, 0.557f, 0.651f, 1.0f);
 
+    // Set up editor context with the scene
+    Engine::Editor::EditorContext editorContext;
+    editorContext.ActiveScene = &scene;
+    
+    editor.Initialize(window.GetHwnd(), deviceResources.GetDevice(), deviceResources.GetDeviceContext(), editorContext);
+    editor.SetRenderer(&renderer);  // Allow editor to create objects with meshes
+
+
+
+
     while (!window.ShouldClose())
     {
         window.ProcessEvents();
         input.Update();
+
+        // Update renderer with current selection from editor's context
+        renderer.SetSelectedObject(editor.GetContext().SelectedObject);
 
         editor.BeginFrame();
         editor.Render();

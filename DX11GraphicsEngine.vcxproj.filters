@@ -150,11 +150,38 @@
     <ClInclude Include="Engine\Graphics\Renderer.h">
       <Filter>Source Files\Engine\Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\Graphics\RenderObject.h">
-      <Filter>Source Files\Engine\Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Engine\Graphics\Shader.h">
       <Filter>Source Files\Engine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\EditorContext.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\InspectorPanel.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\SceneHierarchyPanel.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\ViewportPanel.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Scene\LightComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\UndoCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\UndoManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\TransformChangeCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\DeleteObjectCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\MenuBarPanel.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -240,11 +267,23 @@
     <ClCompile Include="Engine\Graphics\Renderer.cpp">
       <Filter>Source Files\Engine\Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\Graphics\RenderObject.cpp">
-      <Filter>Source Files\Engine\Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Engine\Graphics\Shader.cpp">
       <Filter>Source Files\Engine\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Editor\EditorContext.cpp">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Editor\InspectorPanel.cpp">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Editor\SceneHierarchyPanel.cpp">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Editor\ViewportPanel.cpp">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Editor\MenuBarPanel.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

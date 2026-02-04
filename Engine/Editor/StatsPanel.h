@@ -6,6 +6,6 @@ namespace Engine::Editor
     class StatsPanel : public EditorPanel
     {
     public:
-        void OnRender() override;
+        void Draw(EditorContext& context) override;
     };
 }

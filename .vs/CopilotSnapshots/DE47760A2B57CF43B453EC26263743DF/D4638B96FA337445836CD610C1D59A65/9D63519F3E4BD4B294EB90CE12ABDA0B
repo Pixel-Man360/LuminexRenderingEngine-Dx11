@@ -1,0 +1,29 @@
+﻿// SceneHierarchyPanel.cpp
+#include "SceneHierarchyPanel.h"
+#include "imgui.h"
+
+using namespace Engine::Editor;
+
+void SceneHierarchyPanel::Draw(EditorContext& context)
+{
+    ImGui::Begin("Scene Hierarchy");
+
+    if (!context.ActiveScene)
+    {
+        ImGui::Text("No active scene");
+        ImGui::End();
+        return;
+    }
+
+    for (auto& obj : context.ActiveScene->GetObjects())
+    {
+        bool selected = (context.SelectedObject == obj.get());
+
+        if (ImGui::Selectable(obj->GetName().c_str(), selected))
+        {
+            context.SelectedObject = obj.get();
+        }
+    }
+
+    ImGui::End();
+}

@@ -4,12 +4,12 @@
 #include <vector>
 #include "DeviceResources.h"
 #include "../Core/Camera.h"
-#include "RenderObject.h"
+#include "../Scene/Scene.h"
+
 #include "Light.h"
 #include "CBLight.h"
 #include "ConstantBuffer.h"
 
-// Note: Don't use "using namespace" in headers - it causes conflicts
 
 static const uint32_t NUM_CASCADES = 4;
 static const uint32_t SHADOW_MAP_SIZE = 2048;
@@ -33,13 +33,44 @@ namespace Engine::Graphics
         void SetClearColor(float r, float g, float b, float a);
         void Release();
 
+        void SetActiveScene(Engine::Scene::Scene* scene);
+        void SetSelectedObject(Engine::Scene::SceneObject* obj);
+        
+        // Get available meshes for creating objects
+        Mesh* GetCubeMesh() const { return m_cube; }
+        Mesh* GetSphereMesh() const { return m_sphere; }
+        Mesh* GetCylinderMesh() const { return m_cylinder; }
+        Mesh* GetCapsuleMesh() const { return m_capsule; }
+        Mesh* GetPlaneMesh() const { return m_planeMesh; }
+        
+        // Get available textures
+        ID3D11ShaderResourceView* GetBrickTexture() const { return m_brickTexture; }
+        ID3D11ShaderResourceView* GetGroundTexture() const { return m_groundTexture; }
+        
+        // Get texture count and names for UI
+        struct TextureInfo { const char* name; ID3D11ShaderResourceView* srv; };
+        std::vector<TextureInfo> GetAvailableTextures() const {
+            return {
+                { "None", nullptr },
+                { "Brick", m_brickTexture },
+                { "Ground", m_groundTexture }
+            };
+        }
+
     private:
+        void GatherLightsFromScene();
+
+        Engine::Scene::Scene* m_activeScene = nullptr;
+        Engine::Scene::SceneObject* m_selectedObject = nullptr;
 
         DeviceResources* m_deviceResources = nullptr;
         Shader* m_shader = nullptr;
 		Shader* m_shadowShader = nullptr;
         Shader* m_shadowDebugShader = nullptr;
-        Mesh* m_mesh = nullptr;
+        Mesh* m_cube = nullptr;
+		Mesh* m_sphere = nullptr;
+		Mesh* m_cylinder = nullptr;
+		Mesh* m_capsule = nullptr;
 		Mesh* m_planeMesh = nullptr;
         ConstantBuffer* m_cbPerObject = nullptr;
         ConstantBuffer* m_cbLight = nullptr;
@@ -87,11 +118,7 @@ namespace Engine::Graphics
         ID3D11Buffer* m_fullscreenVB = nullptr;
 
        
-     
         Engine::Core::Camera m_camera;
-
-		std::vector<RenderObject*> m_renderObjects;
-
 
         DirectX::XMFLOAT4 m_clearColor{ 0.1f, 0.5f, 0.6f, 1.0f };
 
@@ -101,7 +128,6 @@ namespace Engine::Graphics
         void RenderShadowDebug();
 		void ComputeCascadeSplits();
         void ToggleShadowDebug() { m_showShadowDebug = !m_showShadowDebug; }
-        void DestroyResources();
     };
 
-} // namespace Engine::Graphics
+} 

@@ -1,0 +1,33 @@
+﻿#pragma once
+#include <vector>
+#include <memory>
+#include <Windows.h>
+#include <d3d11.h>
+#include "EditorPanel.h"
+#include "EditorContext.h"
+
+
+
+namespace Engine::Editor
+{
+	class Editor
+	{
+	public:
+		void Initialize(HWND__* hwnd, ID3D11Device* device, ID3D11DeviceContext* context, EditorContext editorContext);
+		void Shutdown();
+
+		void BeginFrame();
+		void Render();
+		void EndFrame();
+
+
+		void AddPanel(std::unique_ptr<EditorPanel> panel);
+
+	private:
+		std::vector<std::unique_ptr<EditorPanel>> m_panels;
+		EditorContext m_context;
+		bool m_showDemoWindow = false;
+	};
+}
+
+

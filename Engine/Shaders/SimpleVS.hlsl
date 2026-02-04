@@ -4,6 +4,8 @@ cbuffer CBPerObject : register(b0)
     float4x4 WorldInvTranspose;
     float4x4 View;
     float4x4 Projection;
+    float4x4 LightViewProj;
+    float4 SelectionColor; // xyz = color, w = is selected
 };
 
 struct VSInput
@@ -19,7 +21,8 @@ struct VSOutput
     float3 normalWS : NORMAL;
     float3 posWS : POSITION;
     float2 uv : TEXCOORD;
-    float4 posVS : TEXCOORD1; // view-space position
+    float4 posVS : TEXCOORD1;
+    float4 selectionColor : TEXCOORD2;
 };
 
 VSOutput main(VSInput input)
@@ -36,6 +39,7 @@ VSOutput main(VSInput input)
 
     output.normalWS = normalize(mul(input.normal, (float3x3) WorldInvTranspose));
     output.uv = input.uv;
+    output.selectionColor = SelectionColor;
 
     return output;
 }

@@ -2,8 +2,13 @@ K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Core\Camera.
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Core\Input.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Input.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Core\Window.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Window.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\Editor.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Editor.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\EditorContext.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\EditorContext.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\EditorPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\EditorPanel.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\InspectorPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\InspectorPanel.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\MenuBarPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\MenuBarPanel.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\SceneHierarchyPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\SceneHierarchyPanel.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\StatsPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\StatsPanel.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\ViewportPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\ViewportPanel.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui\imgui.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\imgui.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui\imgui_demo.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\imgui_demo.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui\imgui_draw.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\imgui_draw.obj
@@ -15,7 +20,6 @@ K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\Con
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\DeviceResources.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\DeviceResources.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\Mesh.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Mesh.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\Renderer.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Renderer.obj
-K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\RenderObject.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\RenderObject.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\Shader.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Shader.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Scene\Scene.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Scene.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Scene\SceneObject.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\SceneObject.obj

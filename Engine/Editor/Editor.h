@@ -4,26 +4,37 @@
 #include <Windows.h>
 #include <d3d11.h>
 #include "EditorPanel.h"
+#include "EditorContext.h"
 
-
+namespace Engine::Graphics { class Renderer; }
 
 namespace Engine::Editor
 {
+	class MenuBarPanel;
+	class InspectorPanel;
+
 	class Editor
 	{
 	public:
-		void Initialize(HWND__* hwnd, ID3D11Device* device, ID3D11DeviceContext* context);
+		void Initialize(HWND__* hwnd, ID3D11Device* device, ID3D11DeviceContext* context, EditorContext editorContext);
 		void Shutdown();
 
 		void BeginFrame();
 		void Render();
 		void EndFrame();
 
-
 		void AddPanel(std::unique_ptr<EditorPanel> panel);
+		
+		// Set renderer for menu bar to create objects
+		void SetRenderer(Engine::Graphics::Renderer* renderer);
+		
+		EditorContext& GetContext() { return m_context; }
 
 	private:
 		std::vector<std::unique_ptr<EditorPanel>> m_panels;
+		MenuBarPanel* m_menuBar = nullptr;
+		InspectorPanel* m_inspectorPanel = nullptr;
+		EditorContext m_context;
 		bool m_showDemoWindow = false;
 	};
 }

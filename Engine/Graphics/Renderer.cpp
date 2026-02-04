@@ -6,12 +6,15 @@
 #include "CBLight.h"
 #include "CBShadow.h"
 #include "../Core/Input.h"
+#include "../Scene/Scene.h"
+#include "../Scene/LightComponent.h"
 
 #include <DirectXMath.h>
 #include <WICTextureLoader.h>
 
 using namespace Engine::Graphics;
 using namespace Engine::Core;
+using namespace Engine::Scene;
 using namespace DirectX;
 using namespace std;
 
@@ -98,15 +101,16 @@ bool Renderer::CreateResources()
     ID3D11Device* device = m_deviceResources->GetDevice();
     ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
 
-  
-
     if (!device || !context) return false;
 
 
     m_shader = new Shader();
     m_shadowShader = new Shader();
 	m_shadowDebugShader = new Shader();
-    m_mesh = new Mesh();
+	m_cube = new Mesh();
+	m_sphere = new Mesh();
+	m_cylinder = new Mesh();
+	m_capsule = new Mesh();
     m_planeMesh = new Mesh();
 
     m_cbPerObject = new ConstantBuffer();
@@ -163,11 +167,31 @@ bool Renderer::CreateResources()
         return false;
     }
 
-    if (!m_mesh->CreateCube(device))
+    if (!m_cube->CreateCube(device))
     {
         MessageBox(nullptr, L"Failed to create cube", L"Error", MB_OK);
         return false;
     }
+
+    if (!m_sphere->CreateSphere(device))
+    {
+        MessageBox(nullptr, L"Failed to create sphere", L"Error", MB_OK);
+        return false;
+    }
+
+    if (!m_cylinder->CreateCylinder(device))
+    {
+        MessageBox(nullptr, L"Failed to create cylinder", L"Error", MB_OK);
+        return false;
+	}
+
+    if (!m_capsule->CreateCapsule(device))
+    {
+        MessageBox(nullptr, L"Failed to create capsule", L"Error", MB_OK);
+        return false;
+	}
+
+
 
     if (!m_planeMesh->CreatePlane(device))
     {
@@ -242,24 +266,35 @@ bool Renderer::CreateResources()
     }
 
     // -----------------------------
-    // Render Objects 
+    // Scene Objects 
     // -----------------------------
-    {
-        RenderObject* cube1 = new RenderObject(m_mesh);
-        cube1->GetTransform().SetPosition(XMFLOAT3(0.0f, 0.0f, 0.0f));
-        cube1->SetTexture(m_brickTexture); 
-        m_renderObjects.push_back(cube1);
+   
+    SceneObject* cube = m_activeScene->CreateObject("Cube");
+    cube->SetMesh(m_cube);
+    cube->SetTexture(m_brickTexture);
+    cube->GetTransform().SetPosition({ -4,0,0 });
 
-        RenderObject* cube2 = new RenderObject(m_mesh);
-        cube2->GetTransform().SetPosition(XMFLOAT3(3.0f, 2.0f, 0.0f));
-        cube2->SetTexture(m_brickTexture);  
-        m_renderObjects.push_back(cube2);
+	SceneObject* sphere = m_activeScene->CreateObject("Sphere");
+	sphere->SetMesh(m_sphere);
+	sphere->SetTexture(m_brickTexture);
+	sphere->GetTransform().SetPosition({ 0, 0, 0 });
 
-        RenderObject* ground = new RenderObject(m_planeMesh);
-        ground->GetTransform().SetPosition({ 1, -1.6f, 0 });
-        ground->SetTexture(m_groundTexture); 
-        m_renderObjects.push_back(ground);
-    }
+	SceneObject* cylinder = m_activeScene->CreateObject("Cylinder");
+	cylinder->SetMesh(m_cylinder);
+	cylinder->SetTexture(m_brickTexture);   
+	cylinder->GetTransform().SetPosition({ 4, 0, 0 });
+
+	SceneObject* Capsule = m_activeScene->CreateObject("Capsule");
+	Capsule->SetMesh(m_capsule);
+	Capsule->SetTexture(m_brickTexture);
+	Capsule->GetTransform().SetPosition({ 8, 0, 0 });
+
+
+    SceneObject* ground = m_activeScene->CreateObject("Ground Plane");
+    ground->SetMesh(m_planeMesh);
+    ground->SetTexture(m_groundTexture);
+    ground->GetTransform().SetPosition({ 0.5, -1.6f, 0 });
+ 
 
     // -----------------------------
     // Sampler
@@ -396,43 +431,65 @@ bool Renderer::CreateResources()
 		return false;
 
 
+
 	// -----------------------------
-	// Lights
+	// Lights 
 	// -----------------------------
 
-    Light sun = {};
-    sun.Type = LIGHT_DIRECTIONAL;
-    sun.Direction = XMFLOAT3(-0.5f, -1.0, 0.5);
-    sun.Color = XMFLOAT3(1, 1, 1);
-    sun.Intensity = 1.0f;
-
-   /* Light lamp = {};
-    lamp.Type = LIGHT_POINT;
-    lamp.Position = XMFLOAT3(3, 3, 0);
-    lamp.Color = XMFLOAT3(0.25, 0.85f, 0.3f);
-    lamp.Range = 5.0f;
-    lamp.Intensity = 1.0f;
-
-    Light lamp2 = {};
-    lamp2.Type = LIGHT_POINT;
-    lamp2.Position = XMFLOAT3(0, 0, -2);
-    lamp2.Color = XMFLOAT3(0.85, 0.75f, 0.0f);
-    lamp2.Range = 5.0f;
-    lamp2.Intensity = 1.0f;
-
-    Light lamp3 = {};
-    lamp3.Type = LIGHT_POINT;
-    lamp3.Position = XMFLOAT3(0, 0, 2);
-    lamp3.Color = XMFLOAT3(0.5, 0.0f, 0.85f);
-    lamp3.Range = 5.0f;
-    lamp3.Intensity = 1.0f;*/
-
-    m_lights.push_back(sun);
-   /*m_lights.push_back(lamp);
-    m_lights.push_back(lamp2);
-	m_lights.push_back(lamp3);*/
+    // Create directional light (sun)
+    SceneObject* sunLight = m_activeScene->CreateObject("Directional Light");
+    sunLight->AddLightComponent();
+    sunLight->GetLightComponent()->SetType(Engine::Scene::LightType::Directional);
+    sunLight->GetLightComponent()->SetColor({ 1.0f, 1.0f, 1.0f });
+    sunLight->GetLightComponent()->SetIntensity(1.0f);
+    sunLight->GetTransform().SetRotationEuler({ 60.0f, -60.0f, 0.0f });
 
     return true;
+}
+
+void Renderer::GatherLightsFromScene()
+{
+    m_lights.clear();
+    
+    if (!m_activeScene) return;
+    
+    for (auto& sceneObj : m_activeScene->GetObjects())
+    {
+        SceneObject* obj = sceneObj.get();
+        LightComponent* lightComp = obj->GetLightComponent();
+        
+        if (!lightComp || !lightComp->IsEnabled()) continue;
+        
+        Light light = {};
+        light.Type = static_cast<int>(lightComp->GetType());
+        light.Color = lightComp->GetColor();
+        light.Intensity = lightComp->GetIntensity();
+        light.Range = lightComp->GetRange();
+        
+        light.Position = obj->GetTransform().GetPosition();
+        
+        if (lightComp->GetType() == Engine::Scene::LightType::Directional)
+        {
+            XMFLOAT4 quat = obj->GetTransform().GetRotation();
+            XMVECTOR quatV = XMLoadFloat4(&quat);
+            XMVECTOR forward = XMVectorSet(0, 0, 1, 0);
+            XMVECTOR direction = XMVector3Rotate(forward, quatV);
+            
+            XMStoreFloat3(&light.Direction, direction);
+        }
+        
+        m_lights.push_back(light);
+    }
+    
+    if (m_lights.empty())
+    {
+        Light defaultLight = {};
+        defaultLight.Type = LIGHT_DIRECTIONAL;
+        defaultLight.Direction = XMFLOAT3(-0.5f, -1.0f, 0.5f);
+        defaultLight.Color = XMFLOAT3(1, 1, 1);
+        defaultLight.Intensity = 1.0f;
+        m_lights.push_back(defaultLight);
+    }
 }
 
 void Renderer::Render()
@@ -443,6 +500,9 @@ void Renderer::Render()
     // Update camera FIRST so both shadow pass and main pass use consistent matrices
     float dt = 0.016f; // temporary
     m_camera.Update(dt);
+    
+    // Gather lights from scene objects
+    GatherLightsFromScene();
 
     // Compute cascade splits BEFORE shadow pass
     ComputeCascadeSplits();
@@ -463,6 +523,8 @@ void Renderer::Render()
 
 void Renderer::ShadowPass()
 {
+	if (!m_activeScene) return;
+
     ID3D11Device* device = m_deviceResources->GetDevice();
     ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
 
@@ -576,10 +638,13 @@ void Renderer::ShadowPass()
 
 
         // Draw all shadow casters
-        for (auto* obj : m_renderObjects)
+        for (auto& sceneObj : m_activeScene->GetObjects())
         {
+			SceneObject* obj = sceneObj.get();
+            if (!obj->GetMesh()) continue; 
+            
             CBPerObject cb{};
-            XMMATRIX world = obj->GetTransform().GetWorldMatrix();
+            XMMATRIX world = obj->GetWorldMatrix(); 
             XMStoreFloat4x4(&cb.World, XMMatrixTranspose(world));
             XMStoreFloat4x4(&cb.LightViewProj, XMMatrixTranspose(m_lightViewProj[c]));
 
@@ -594,6 +659,8 @@ void Renderer::ShadowPass()
 
 void Renderer::MainRenderPass()
 {
+    if (!m_activeScene) return;
+
     ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
     ID3D11RenderTargetView* rtv = m_deviceResources->GetRenderTargetView();
     ID3D11DepthStencilView* dsv = m_deviceResources->GetDepthStencilView();
@@ -735,31 +802,20 @@ void Renderer::MainRenderPass()
     ID3D11SamplerState* samplers[2] = { m_samplerState, m_shadowMapSampler };
     context->PSSetSamplers(0, 2, samplers);
 
- 
-
 
 
     // -----------------------------
     // Draw objects
     // -----------------------------
-    float dt = 0.016f; // for rotation animation
-    for (size_t i = 0; i < m_renderObjects.size(); ++i)
+
+	for (auto& sceneObj : m_activeScene->GetObjects())
     {
-        RenderObject* obj = m_renderObjects[i];
+        SceneObject* obj = sceneObj.get();
 
-        if (i < m_renderObjects.size() - 1)
-        {
-            XMFLOAT3 axis = (i == 0)
-                ? XMFLOAT3(0, 1, 0)
-                : XMFLOAT3(1, 0, 0);
+        if (!obj->GetMesh()) continue;
 
+        XMMATRIX world = obj->GetWorldMatrix(); 
 
-            obj->GetTransform().RotateAxisAngle(axis, dt * (i + 1));
-        }
-
-
-
-        XMMATRIX world = obj->GetTransform().GetWorldMatrix();
 
         // Compute inverse transpose (ignore translation)
         XMMATRIX worldInvTranspose = XMMatrixTranspose(XMMatrixInverse(nullptr, world));
@@ -769,9 +825,10 @@ void Renderer::MainRenderPass()
         XMStoreFloat4x4(&cbObj.WorldInvTranspose, XMMatrixTranspose(worldInvTranspose));
         XMStoreFloat4x4(&cbObj.View, XMMatrixTranspose(view));
         XMStoreFloat4x4(&cbObj.Projection, XMMatrixTranspose(proj));
-        //XMStoreFloat4x4(&cbObj.LightViewProj, XMMatrixTranspose(m_lightViewProj[0]));
-
-
+        
+        // Selection highlight - orange tint for selected objects
+        bool isSelected = (obj == m_selectedObject);
+        cbObj.SelectionColor = { 1.0f, 0.5f, 0.0f, isSelected ? 1.0f : 0.0f };
 
         m_cbPerObject->Update(context, &cbObj);
 
@@ -833,12 +890,21 @@ void Renderer::ComputeCascadeSplits()
 }
 
 
-
-
 void Renderer::SetClearColor(float r, float g, float b, float a)
 {
     m_clearColor = { r, g, b, a };
 }
+
+void Renderer::SetActiveScene(Engine::Scene::Scene* scene)
+{
+    m_activeScene = scene;
+}
+
+void Renderer::SetSelectedObject(Engine::Scene::SceneObject* obj)
+{
+    m_selectedObject = obj;
+}
+
 
 void Renderer::Release()
 {
@@ -858,15 +924,13 @@ void Renderer::Release()
     if (m_shadowRasterizerState) m_shadowRasterizerState->Release();
 
     delete m_shader;
-    delete m_mesh;
+	delete m_cube;
+	delete m_sphere;
+	delete m_cylinder;
+	delete m_capsule;
     delete m_planeMesh;
     delete m_cbPerObject;
     delete m_cbLight;
     delete m_cbShadow;
     delete m_shadowShader;
-
-    for (RenderObject* obj : m_renderObjects)
-        delete obj;
-
-    m_renderObjects.clear();
 }

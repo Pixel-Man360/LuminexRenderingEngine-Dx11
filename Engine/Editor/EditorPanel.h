@@ -1,4 +1,5 @@
 #pragma once
+#include "EditorContext.h"
 
 namespace Engine::Editor
 {
@@ -6,6 +7,6 @@ namespace Engine::Editor
     {
     public:
         virtual ~EditorPanel() = default;
-        virtual void OnRender() = 0;
+        virtual void Draw(EditorContext& context) = 0;
     };
 }

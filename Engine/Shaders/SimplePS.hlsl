@@ -42,7 +42,8 @@ struct PSInput
     float3 normalWS : NORMAL;
     float3 posWS : POSITION;
     float2 uv : TEXCOORD0;
-    float4 posVS : TEXCOORD1; // view-space position
+    float4 posVS : TEXCOORD1;
+    float4 selectionColor : TEXCOORD2;
 };
 
 // ----------------------------------------------------
@@ -177,6 +178,13 @@ float4 main(PSInput input) : SV_TARGET
             light.Intensity *
             attenuation *
             shadow;
+    }
+
+    // Apply selection highlight
+    if (input.selectionColor.w > 0.5f)
+    {
+        // Add orange tint to selected objects
+        color = lerp(color, input.selectionColor.xyz, 0.3f);
     }
 
     return float4(color, 1.0f);

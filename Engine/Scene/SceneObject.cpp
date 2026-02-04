@@ -1,10 +1,16 @@
 #include "SceneObject.h"
 
 using namespace Engine::Scene;
+using namespace Engine::Graphics;
 using namespace DirectX;
 
 SceneObject::SceneObject(const std::string& name)
-    : m_name(name)
+    : m_name(name),
+      m_transform(),
+      m_parent(nullptr),
+      m_mesh(nullptr),
+      m_texture(nullptr),
+      m_selected(false)
 {
 }
 
@@ -92,4 +98,52 @@ bool SceneObject::IsSelectable() const
 void SceneObject::SetSelected(bool selected)
 {
 	m_selected = selected;
+}
+
+void SceneObject::SetMesh(Engine::Graphics::Mesh* mesh)
+{
+    m_mesh = mesh;
+}
+
+Mesh* SceneObject::GetMesh() const
+{
+    return m_mesh;
+}
+
+void SceneObject::SetTexture(ID3D11ShaderResourceView* texture)
+{
+    m_texture = texture;
+}
+
+ID3D11ShaderResourceView* SceneObject::GetTexture() const
+{
+    return m_texture;
+}
+
+bool SceneObject::HasRenderable() const
+{
+    return m_mesh != nullptr;
+}
+
+void SceneObject::AddLightComponent()
+{
+    if (!m_lightComponent)
+    {
+        m_lightComponent = std::make_unique<LightComponent>();
+    }
+}
+
+void SceneObject::RemoveLightComponent()
+{
+    m_lightComponent.reset();
+}
+
+LightComponent* SceneObject::GetLightComponent() const
+{
+    return m_lightComponent.get();
+}
+
+bool SceneObject::HasLight() const
+{
+    return m_lightComponent != nullptr;
 }

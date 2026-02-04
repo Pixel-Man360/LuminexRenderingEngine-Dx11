@@ -15,6 +15,7 @@ namespace Engine::Scene
 		void SetPosition(const DirectX::XMFLOAT3& position);
 		void SetScale(const DirectX::XMFLOAT3& scale);
 		void SetRotation(const DirectX::XMFLOAT4& quaternion);
+		void SetRotationEuler(const DirectX::XMFLOAT3& eulerDegrees);
 		void SetParent(Transform* parent);
 		void Translate(const DirectX::XMFLOAT3& delta);
 		void Rotate(const DirectX::XMFLOAT3& deltaEuler);
@@ -24,6 +25,7 @@ namespace Engine::Scene
 		DirectX::XMFLOAT3 GetPosition() const;
 		DirectX::XMFLOAT3 GetScale() const;
 		DirectX::XMFLOAT4 GetRotation() const;
+		DirectX::XMFLOAT3 GetRotationEuler() const;
 
 		DirectX::XMMATRIX GetWorldMatrix() const;
 		DirectX::XMMATRIX GetLocalMatrix() const;
@@ -35,11 +37,13 @@ namespace Engine::Scene
 
 	private:
 		DirectX::XMFLOAT3 m_position = { 0.0f, 0.0f, 0.0f };
-		DirectX::XMFLOAT4 m_rotation = { 0.0f, 0.0f, 0.0f, 1.0f };
+		DirectX::XMFLOAT3 m_eulerDegrees = { 0.0f, 0.0f, 0.0f };  // Euler angles in degrees (source of truth for editor)
+		DirectX::XMFLOAT4 m_rotation = { 0.0f, 0.0f, 0.0f, 1.0f }; // Quaternion (derived from Euler)
 		DirectX::XMFLOAT3 m_scale = { 1.0f, 1.0f, 1.0f };
 		Transform* m_parent = nullptr;
 		std::vector<Transform*> m_children;
 
+		void UpdateQuaternionFromEuler();
 		void AddChild(Transform* child);
 		void RemoveChild(Transform* child);
 	};

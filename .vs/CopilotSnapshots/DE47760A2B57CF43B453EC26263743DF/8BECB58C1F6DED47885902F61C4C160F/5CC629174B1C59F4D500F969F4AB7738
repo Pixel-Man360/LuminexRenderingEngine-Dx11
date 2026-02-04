@@ -1,0 +1,124 @@
+﻿// InspectorPanel.cpp
+#include "InspectorPanel.h"
+#include "imgui.h"
+#include "../Scene/Transform.h"
+#include "../Scene/LightComponent.h"
+#include <DirectXMath.h>
+
+using namespace DirectX;
+using namespace Engine::Editor;
+using namespace Engine::Scene;
+
+void InspectorPanel::Draw(EditorContext& context)
+{
+    ImGui::Begin("Inspector");
+
+    if (!context.SelectedObject)
+    {
+        ImGui::Text("No object selected");
+        ImGui::End();
+        return;
+    }
+
+    auto& transform = context.SelectedObject->GetTransform();
+
+    ImGui::Text("Transform");
+    ImGui::Separator();
+
+    // Position
+    XMFLOAT3 pos = transform.GetPosition();
+    if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
+        transform.SetPosition(pos);
+
+    // Rotation - use stored Euler angles (no conversion needed!)
+    XMFLOAT3 eulerDeg = transform.GetRotationEuler();
+    if (ImGui::DragFloat3("Rotation", &eulerDeg.x, 1.0f))
+    {
+        transform.SetRotationEuler(eulerDeg);
+    }
+
+    // Scale
+    XMFLOAT3 scale = transform.GetScale();
+    if (ImGui::DragFloat3("Scale", &scale.x, 0.1f, 0.01f, 100.0f))
+        transform.SetScale(scale);
+
+    // Light Component
+    LightComponent* light = context.SelectedObject->GetLightComponent();
+    if (light)
+    {
+        ImGui::Spacing();
+        ImGui::Text("Light");
+        ImGui::Separator();
+
+        // Light Type
+        const char* lightTypes[] = { "Directional", "Point", "Spot" };
+        int currentType = static_cast<int>(light->GetType());
+        if (ImGui::Combo("Type", &currentType, lightTypes, IM_ARRAYSIZE(lightTypes)))
+        {
+            light->SetType(static_cast<LightType>(currentType));
+        }
+
+        // Color
+        XMFLOAT3 color = light->GetColor();
+        if (ImGui::ColorEdit3("Color", &color.x))
+        {
+            light->SetColor(color);
+        }
+
+        // Intensity
+        float intensity = light->GetIntensity();
+        if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
+        {
+            light->SetIntensity(intensity);
+        }
+
+        // Range (only for point/spot lights)
+        if (light->GetType() != LightType::Directional)
+        {
+            float range = light->GetRange();
+            if (ImGui::DragFloat("Range", &range, 0.5f, 0.1f, 1000.0f))
+            {
+                light->SetRange(range);
+            }
+        }
+
+        // Spot angle (only for spot lights)
+        if (light->GetType() == LightType::Spot)
+        {
+            float spotAngle = light->GetSpotAngle();
+            if (ImGui::DragFloat("Spot Angle", &spotAngle, 1.0f, 1.0f, 179.0f))
+            {
+                light->SetSpotAngle(spotAngle);
+            }
+        }
+
+        // Enabled toggle
+        bool enabled = light->IsEnabled();
+        if (ImGui::Checkbox("Enabled", &enabled))
+        {
+            light->SetEnabled(enabled);
+        }
+    }
+
+    // Add Component button
+    ImGui::Spacing();
+    ImGui::Separator();
+    if (ImGui::Button("Add Component"))
+    {
+        ImGui::OpenPopup("AddComponentPopup");
+    }
+
+    if (ImGui::BeginPopup("AddComponentPopup"))
+    {
+        if (!context.SelectedObject->HasLight())
+        {
+            if (ImGui::MenuItem("Light"))
+            {
+                context.SelectedObject->AddLightComponent();
+            }
+        }
+        ImGui::EndPopup();
+    }
+
+    ImGui::End();
+}

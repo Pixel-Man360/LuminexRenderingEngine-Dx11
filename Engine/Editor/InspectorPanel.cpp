@@ -1,0 +1,223 @@
+// InspectorPanel.cpp
+#include "InspectorPanel.h"
+#include "UndoManager.h"
+#include "TransformChangeCommand.h"
+#include "imgui.h"
+#include "../Scene/Transform.h"
+#include "../Scene/LightComponent.h"
+#include "../Graphics/Renderer.h"
+#include <DirectXMath.h>
+
+using namespace DirectX;
+using namespace Engine::Editor;
+using namespace Engine::Scene;
+
+// Static variables to track initial values when dragging starts
+static XMFLOAT3 s_dragStartPos;
+static XMFLOAT3 s_dragStartRot;
+static XMFLOAT3 s_dragStartScale;
+static bool s_isDraggingPos = false;
+static bool s_isDraggingRot = false;
+static bool s_isDraggingScale = false;
+
+void InspectorPanel::Draw(EditorContext& context)
+{
+    ImGui::Begin("Inspector");
+
+    if (!context.SelectedObject)
+    {
+        ImGui::Text("No object selected");
+        ImGui::End();
+        return;
+    }
+
+    auto& transform = context.SelectedObject->GetTransform();
+
+    ImGui::Text("Transform");
+    ImGui::Separator();
+
+    // Position - with undo support
+    XMFLOAT3 pos = transform.GetPosition();
+    
+    // Capture start value when drag begins
+    if (ImGui::IsItemActive() && !s_isDraggingPos)
+    {
+        s_dragStartPos = pos;
+        s_isDraggingPos = true;
+    }
+    
+    if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
+    {
+        if (!s_isDraggingPos)
+        {
+            s_dragStartPos = transform.GetPosition();
+            s_isDraggingPos = true;
+        }
+        transform.SetPosition(pos);
+    }
+    
+    // Record undo when drag ends
+    if (s_isDraggingPos && ImGui::IsItemDeactivatedAfterEdit())
+    {
+        auto cmd = std::make_unique<TransformChangeCommand>(
+            context.SelectedObject,
+            TransformChangeCommand::ChangeType::Position,
+            s_dragStartPos, pos);
+        UndoManager::Get().AddCommand(std::move(cmd));
+        s_isDraggingPos = false;
+    }
+
+    // Rotation - with undo support
+    XMFLOAT3 eulerDeg = transform.GetRotationEuler();
+    
+    if (ImGui::DragFloat3("Rotation", &eulerDeg.x, 1.0f))
+    {
+        if (!s_isDraggingRot)
+        {
+            s_dragStartRot = transform.GetRotationEuler();
+            s_isDraggingRot = true;
+        }
+        transform.SetRotationEuler(eulerDeg);
+    }
+    
+    if (s_isDraggingRot && ImGui::IsItemDeactivatedAfterEdit())
+    {
+        auto cmd = std::make_unique<TransformChangeCommand>(
+            context.SelectedObject,
+            TransformChangeCommand::ChangeType::Rotation,
+            s_dragStartRot, eulerDeg);
+        UndoManager::Get().AddCommand(std::move(cmd));
+        s_isDraggingRot = false;
+    }
+
+    // Scale - with undo support
+    XMFLOAT3 scale = transform.GetScale();
+    
+    if (ImGui::DragFloat3("Scale", &scale.x, 0.1f, 0.01f, 100.0f))
+    {
+        if (!s_isDraggingScale)
+        {
+            s_dragStartScale = transform.GetScale();
+            s_isDraggingScale = true;
+        }
+        transform.SetScale(scale);
+    }
+    
+    if (s_isDraggingScale && ImGui::IsItemDeactivatedAfterEdit())
+    {
+        auto cmd = std::make_unique<TransformChangeCommand>(
+            context.SelectedObject,
+            TransformChangeCommand::ChangeType::Scale,
+            s_dragStartScale, scale);
+        UndoManager::Get().AddCommand(std::move(cmd));
+        s_isDraggingScale = false;
+    }
+
+    // Mesh Renderer section (only show if object has a mesh)
+    if (context.SelectedObject->GetMesh() || m_renderer)
+    {
+        ImGui::Spacing();
+        ImGui::Text("Mesh Renderer");
+        ImGui::Separator();
+        
+        // Mesh dropdown
+        if (m_renderer)
+        {
+            const char* meshNames[] = { "None", "Cube", "Sphere", "Cylinder", "Capsule", "Plane" };
+            Engine::Graphics::Mesh* meshes[] = {
+                nullptr,
+                m_renderer->GetCubeMesh(),
+                m_renderer->GetSphereMesh(),
+                m_renderer->GetCylinderMesh(),
+                m_renderer->GetCapsuleMesh(),
+                m_renderer->GetPlaneMesh()
+            };
+            
+            // Find current mesh index
+            int currentMesh = 0;
+            Engine::Graphics::Mesh* objMesh = context.SelectedObject->GetMesh();
+            for (int i = 0; i < 6; ++i)
+            {
+                if (meshes[i] == objMesh)
+                {
+                    currentMesh = i;
+                    break;
+                }
+            }
+            
+            if (ImGui::Combo("Mesh", &currentMesh, meshNames, IM_ARRAYSIZE(meshNames)))
+            {
+                context.SelectedObject->SetMesh(meshes[currentMesh]);
+            }
+            
+            // Texture dropdown
+            auto textures = m_renderer->GetAvailableTextures();
+            
+            // Find current texture index
+            int currentTex = 0;
+            ID3D11ShaderResourceView* objTex = context.SelectedObject->GetTexture();
+            for (size_t i = 0; i < textures.size(); ++i)
+            {
+                if (textures[i].srv == objTex)
+                {
+                    currentTex = static_cast<int>(i);
+                    break;
+                }
+            }
+            
+            // Build texture names array
+            std::vector<const char*> texNames;
+            for (auto& t : textures)
+                texNames.push_back(t.name);
+            
+            if (ImGui::Combo("Texture", &currentTex, texNames.data(), static_cast<int>(texNames.size())))
+            {
+                context.SelectedObject->SetTexture(textures[currentTex].srv);
+            }
+        }
+    }
+
+    // Light Component
+    LightComponent* light = context.SelectedObject->GetLightComponent();
+    if (light)
+    if (light)
+    {
+        ImGui::Spacing();
+        ImGui::Text("Light");
+        ImGui::Separator();
+
+        // Light Type
+        const char* lightTypes[] = { "Directional", "Point", "Spot" };
+        int currentType = static_cast<int>(light->GetType());
+        if (ImGui::Combo("Type", &currentType, lightTypes, IM_ARRAYSIZE(lightTypes)))
+        {
+            light->SetType(static_cast<Engine::Scene::LightType>(currentType));
+        }
+
+        // Color
+        XMFLOAT3 color = light->GetColor();
+        if (ImGui::ColorEdit3("Color", &color.x))
+        {
+            light->SetColor(color);
+        }
+
+        // Intensity
+        float intensity = light->GetIntensity();
+        if (ImGui::DragFloat("Intensity", &intensity, 0.1f, 0.0f, 100.0f))
+        {
+            light->SetIntensity(intensity);
+        }
+
+        // Range (only for point/spot lights)
+        if (light->GetType() != Engine::Scene::LightType::Directional)
+        {
+            float range = light->GetRange();
+            if (ImGui::DragFloat("Range", &range, 0.5f, 0.1f, 1000.0f))
+            {
+                light->SetRange(range);
+            }
+        }
+    }
+
+    ImGui::End();
+}

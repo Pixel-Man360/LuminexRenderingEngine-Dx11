@@ -1,0 +1,14 @@
+﻿#pragma once
+
+#include "Scene.h"
+#include "SceneObject.h"
+
+namespace Engine::Editor
+{
+    struct EditorContext
+    {
+        Engine::Scene* ActiveScene = nullptr;
+        Engine::SceneObject* SelectedObject = nullptr;
+        bool ShowEditor = true;
+    };
+}

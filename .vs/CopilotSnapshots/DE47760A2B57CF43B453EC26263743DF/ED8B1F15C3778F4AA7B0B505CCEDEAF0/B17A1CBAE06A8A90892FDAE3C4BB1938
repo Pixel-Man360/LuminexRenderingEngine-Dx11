@@ -1,0 +1,92 @@
+﻿// InspectorPanel.cpp
+#include "InspectorPanel.h"
+#include "imgui.h"
+#include "../Scene/Transform.h"
+#include <DirectXMath.h>
+
+using namespace DirectX;
+using namespace Engine::Editor;
+
+// Helper: Quaternion to Euler angles (in radians)
+static XMFLOAT3 QuaternionToEuler(const XMFLOAT4& q)
+{
+    XMFLOAT3 euler;
+    
+    // Roll (X)
+    float sinr_cosp = 2.0f * (q.w * q.x + q.y * q.z);
+    float cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
+    euler.x = atan2f(sinr_cosp, cosr_cosp);
+    
+    // Pitch (Y)
+    float sinp = 2.0f * (q.w * q.y - q.z * q.x);
+    if (fabsf(sinp) >= 1.0f)
+        euler.y = copysignf(XM_PIDIV2, sinp);
+    else
+        euler.y = asinf(sinp);
+    
+    // Yaw (Z)
+    float siny_cosp = 2.0f * (q.w * q.z + q.x * q.y);
+    float cosy_cosp = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
+    euler.z = atan2f(siny_cosp, cosy_cosp);
+    
+    return euler;
+}
+
+// Helper: Euler angles (in radians) to Quaternion
+static XMFLOAT4 EulerToQuaternion(const XMFLOAT3& euler)
+{
+    XMVECTOR quat = XMQuaternionRotationRollPitchYaw(euler.x, euler.y, euler.z);
+    XMFLOAT4 result;
+    XMStoreFloat4(&result, quat);
+    return result;
+}
+
+void InspectorPanel::Draw(EditorContext& context)
+{
+    ImGui::Begin("Inspector");
+
+    if (!context.SelectedObject)
+    {
+        ImGui::Text("No object selected");
+        ImGui::End();
+        return;
+    }
+
+    auto& transform = context.SelectedObject->GetTransform();
+
+    ImGui::Text("Transform");
+    ImGui::Separator();
+
+    // Position
+    XMFLOAT3 pos = transform.GetPosition();
+    if (ImGui::DragFloat3("Position", &pos.x, 0.1f))
+        transform.SetPosition(pos);
+
+    // Rotation - convert to Euler degrees for display
+    XMFLOAT4 quatRot = transform.GetRotation();
+    XMFLOAT3 eulerRad = QuaternionToEuler(quatRot);
+    XMFLOAT3 eulerDeg = { 
+        XMConvertToDegrees(eulerRad.x), 
+        XMConvertToDegrees(eulerRad.y), 
+        XMConvertToDegrees(eulerRad.z) 
+    };
+    
+    if (ImGui::DragFloat3("Rotation", &eulerDeg.x, 1.0f, -360.0f, 360.0f))
+    {
+        // Convert back to radians, then to quaternion
+        XMFLOAT3 newEulerRad = {
+            XMConvertToRadians(eulerDeg.x),
+            XMConvertToRadians(eulerDeg.y),
+            XMConvertToRadians(eulerDeg.z)
+        };
+        XMFLOAT4 newQuat = EulerToQuaternion(newEulerRad);
+        transform.SetRotation(newQuat);
+    }
+
+    // Scale
+    XMFLOAT3 scale = transform.GetScale();
+    if (ImGui::DragFloat3("Scale", &scale.x, 0.1f, 0.01f, 100.0f))
+        transform.SetScale(scale);
+
+    ImGui::End();
+}

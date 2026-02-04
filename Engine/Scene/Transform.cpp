@@ -6,9 +6,10 @@ using namespace DirectX;
 
 Transform::Transform()
     : m_position(0.0f, 0.0f, 0.0f),
-	m_rotation(0.0f, 0.0f, 0.0f, 1.0f),
-	  m_scale(1.0f, 1.0f, 1.0f),
-	m_parent(nullptr)// Identity quaternion
+      m_eulerDegrees(0.0f, 0.0f, 0.0f),
+      m_rotation(0.0f, 0.0f, 0.0f, 1.0f),
+      m_scale(1.0f, 1.0f, 1.0f),
+      m_parent(nullptr)
 {
 }
 
@@ -29,7 +30,27 @@ void Transform::SetPosition(const XMFLOAT3& position)
 
 void Transform::SetRotation(const XMFLOAT4& quaternion)
 {
-	m_rotation = quaternion;
+    m_rotation = quaternion;
+    // Note: When setting quaternion directly, Euler angles may become out of sync
+    // This is acceptable for programmatic rotations like RotateAxisAngle
+}
+
+void Transform::SetRotationEuler(const XMFLOAT3& eulerDegrees)
+{
+    m_eulerDegrees = eulerDegrees;
+    UpdateQuaternionFromEuler();
+}
+
+void Transform::UpdateQuaternionFromEuler()
+{
+    // Convert degrees to radians
+    float pitch = XMConvertToRadians(m_eulerDegrees.x); // X axis
+    float yaw = XMConvertToRadians(m_eulerDegrees.y);   // Y axis
+    float roll = XMConvertToRadians(m_eulerDegrees.z);  // Z axis
+    
+    // Create quaternion from Euler angles (pitch, yaw, roll order)
+    XMVECTOR quat = XMQuaternionRotationRollPitchYaw(pitch, yaw, roll);
+    XMStoreFloat4(&m_rotation, quat);
 }
 
 
@@ -47,9 +68,10 @@ void Transform::Translate(const XMFLOAT3& delta)
 
 void Transform::Rotate(const XMFLOAT3& deltaEuler)
 {
-	m_rotation.x += deltaEuler.x;
-	m_rotation.y += deltaEuler.y;
-	m_rotation.z += deltaEuler.z;
+	m_eulerDegrees.x += deltaEuler.x;
+	m_eulerDegrees.y += deltaEuler.y;
+	m_eulerDegrees.z += deltaEuler.z;
+	UpdateQuaternionFromEuler();
 }
 
 
@@ -77,6 +99,11 @@ XMFLOAT3 Transform::GetScale() const
 XMFLOAT4 Transform::GetRotation() const
 {
 	return m_rotation;
+}
+
+XMFLOAT3 Transform::GetRotationEuler() const
+{
+    return m_eulerDegrees;
 }
 
 XMMATRIX Transform::GetLocalMatrix() const

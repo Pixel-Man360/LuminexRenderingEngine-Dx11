@@ -104,6 +104,437 @@ bool Mesh::CreateCube(ID3D11Device* device)
     return true;
 }
 
+bool Mesh::CreateSphere(ID3D11Device* device, float radius, uint32_t slices, uint32_t stacks)
+{
+    if (!device) return false;
+
+    // Create a simple UV sphere with correct normals (like cube approach)
+    const uint32_t numVertices = (stacks + 1) * (slices + 1);
+    const uint32_t numIndices = stacks * slices * 6;
+    
+    Vertex* vertices = new Vertex[numVertices];
+    uint32_t* indices = new uint32_t[numIndices];
+
+    uint32_t vi = 0;
+    
+    for (uint32_t stack = 0; stack <= stacks; ++stack)
+    {
+        float phi = DirectX::XM_PI * stack / stacks; // 0 at top, PI at bottom
+        float sinPhi = sinf(phi);
+        float cosPhi = cosf(phi);
+
+        for (uint32_t slice = 0; slice <= slices; ++slice)
+        {
+            float theta = 2.0f * DirectX::XM_PI * slice / slices;
+            float sinTheta = sinf(theta);
+            float cosTheta = cosf(theta);
+
+            // Position on unit sphere, then scale by radius
+            float nx = sinPhi * cosTheta;
+            float ny = cosPhi;
+            float nz = sinPhi * sinTheta;
+            
+            float x = radius * nx;
+            float y = radius * ny;
+            float z = radius * nz;
+
+            float u = (float)slice / slices;
+            float v = (float)stack / stacks;
+
+            vertices[vi].Position = { x, y, z };
+            vertices[vi].Normal = { nx, ny, nz };  // Normal = normalized position for sphere
+            vertices[vi].TexCoord = { u, v };
+            vi++;
+        }
+    }
+
+    uint32_t ii = 0;
+    
+    for (uint32_t stack = 0; stack < stacks; ++stack)
+    {
+        for (uint32_t slice = 0; slice < slices; ++slice)
+        {
+            uint32_t topLeft = stack * (slices + 1) + slice;
+            uint32_t topRight = topLeft + 1;
+            uint32_t bottomLeft = topLeft + (slices + 1);
+            uint32_t bottomRight = bottomLeft + 1;
+
+            // Triangle 1 - correct winding for outward normals
+            indices[ii++] = topLeft;
+            indices[ii++] = topRight;
+            indices[ii++] = bottomLeft;
+
+            // Triangle 2
+            indices[ii++] = topRight;
+            indices[ii++] = bottomRight;
+            indices[ii++] = bottomLeft;
+        }
+    }
+
+    m_indexCount = numIndices;
+
+    D3D11_BUFFER_DESC vbDesc = {};
+    vbDesc.Usage = D3D11_USAGE_DEFAULT;
+    vbDesc.ByteWidth = sizeof(Vertex) * numVertices;
+    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA vbData = {};
+    vbData.pSysMem = vertices;
+
+    HRESULT hr = device->CreateBuffer(&vbDesc, &vbData, m_vertexBuffer.GetAddressOf());
+    delete[] vertices;
+    
+    if (FAILED(hr)) { delete[] indices; return false; }
+
+    D3D11_BUFFER_DESC ibDesc = {};
+    ibDesc.Usage = D3D11_USAGE_DEFAULT;
+    ibDesc.ByteWidth = sizeof(uint32_t) * numIndices;
+    ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA ibData = {};
+    ibData.pSysMem = indices;
+
+    hr = device->CreateBuffer(&ibDesc, &ibData, m_indexBuffer.GetAddressOf());
+    delete[] indices;
+
+    return SUCCEEDED(hr);
+}
+
+bool Mesh::CreateCylinder(ID3D11Device* device, float radius, float height, uint32_t slices)
+{
+    if (!device) return false;
+
+    float halfHeight = height * 0.5f;
+    
+    // Calculate sizes
+    uint32_t sideVertices = (slices + 1) * 2;
+    uint32_t capVertices = (slices + 1) + 1;
+    uint32_t numVertices = sideVertices + capVertices * 2;
+    
+    uint32_t sideIndices = slices * 6;
+    uint32_t capIndices = slices * 3;
+    uint32_t numIndices = sideIndices + capIndices * 2;
+    
+    Vertex* vertices = new Vertex[numVertices];
+    uint32_t* indices = new uint32_t[numIndices];
+    
+    uint32_t vi = 0;
+    uint32_t ii = 0;
+
+    // ====== SIDE VERTICES ======
+    for (uint32_t i = 0; i <= slices; ++i)
+    {
+        float theta = 2.0f * DirectX::XM_PI * i / slices;
+        float cosT = cosf(theta);
+        float sinT = sinf(theta);
+        float x = radius * cosT;
+        float z = radius * sinT;
+        float u = (float)i / slices;
+
+        // Top vertex
+        vertices[vi].Position = { x, halfHeight, z };
+        vertices[vi].Normal = { cosT, 0, sinT };
+        vertices[vi].TexCoord = { u, 0 };
+        vi++;
+        
+        // Bottom vertex
+        vertices[vi].Position = { x, -halfHeight, z };
+        vertices[vi].Normal = { cosT, 0, sinT };
+        vertices[vi].TexCoord = { u, 1 };
+        vi++;
+    }
+
+    // Side indices - corrected winding order
+    for (uint32_t i = 0; i < slices; ++i)
+    {
+        uint32_t topLeft = i * 2;
+        uint32_t bottomLeft = topLeft + 1;
+        uint32_t topRight = topLeft + 2;
+        uint32_t bottomRight = topLeft + 3;
+
+        // First triangle
+        indices[ii++] = topLeft;
+        indices[ii++] = topRight;
+        indices[ii++] = bottomLeft;
+
+        // Second triangle
+        indices[ii++] = topRight;
+        indices[ii++] = bottomRight;
+        indices[ii++] = bottomLeft;
+    }
+
+    // ====== TOP CAP ======
+    uint32_t topCenterIndex = vi;
+    vertices[vi].Position = { 0, halfHeight, 0 };
+    vertices[vi].Normal = { 0, 1, 0 };
+    vertices[vi].TexCoord = { 0.5f, 0.5f };
+    vi++;
+
+    uint32_t topRingStart = vi;
+    for (uint32_t i = 0; i <= slices; ++i)
+    {
+        float theta = 2.0f * DirectX::XM_PI * i / slices;
+        float cosT = cosf(theta);
+        float sinT = sinf(theta);
+        
+        vertices[vi].Position = { radius * cosT, halfHeight, radius * sinT };
+        vertices[vi].Normal = { 0, 1, 0 };
+        vertices[vi].TexCoord = { cosT * 0.5f + 0.5f, sinT * 0.5f + 0.5f };
+        vi++;
+    }
+
+    // Top cap indices 
+    for (uint32_t i = 0; i < slices; ++i)
+    {
+        indices[ii++] = topCenterIndex;
+        indices[ii++] = topRingStart + i + 1;
+        indices[ii++] = topRingStart + i;
+    }
+
+    // ====== BOTTOM CAP ======
+    uint32_t bottomCenterIndex = vi;
+    vertices[vi].Position = { 0, -halfHeight, 0 };
+    vertices[vi].Normal = { 0, -1, 0 };
+    vertices[vi].TexCoord = { 0.5f, 0.5f };
+    vi++;
+
+    uint32_t bottomRingStart = vi;
+    for (uint32_t i = 0; i <= slices; ++i)
+    {
+        float theta = 2.0f * DirectX::XM_PI * i / slices;
+        float cosT = cosf(theta);
+        float sinT = sinf(theta);
+        
+        vertices[vi].Position = { radius * cosT, -halfHeight, radius * sinT };
+        vertices[vi].Normal = { 0, -1, 0 };
+        vertices[vi].TexCoord = { cosT * 0.5f + 0.5f, sinT * 0.5f + 0.5f };
+        vi++;
+    }
+
+    // Bottom cap indices 
+    for (uint32_t i = 0; i < slices; ++i)
+    {
+        indices[ii++] = bottomCenterIndex;
+        indices[ii++] = bottomRingStart + i + 1;
+        indices[ii++] = bottomRingStart + i;
+    }
+
+    m_indexCount = ii;
+
+    D3D11_BUFFER_DESC vbDesc = {};
+    vbDesc.Usage = D3D11_USAGE_DEFAULT;
+    vbDesc.ByteWidth = sizeof(Vertex) * vi;
+    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA vbData = {};
+    vbData.pSysMem = vertices;
+
+    HRESULT hr = device->CreateBuffer(&vbDesc, &vbData, m_vertexBuffer.GetAddressOf());
+    delete[] vertices;
+    
+    if (FAILED(hr)) { delete[] indices; return false; }
+
+    D3D11_BUFFER_DESC ibDesc = {};
+    ibDesc.Usage = D3D11_USAGE_DEFAULT;
+    ibDesc.ByteWidth = sizeof(uint32_t) * ii;
+    ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA ibData = {};
+    ibData.pSysMem = indices;
+
+    hr = device->CreateBuffer(&ibDesc, &ibData, m_indexBuffer.GetAddressOf());
+    delete[] indices;
+
+    return SUCCEEDED(hr);
+}
+
+bool Mesh::CreateCapsule(ID3D11Device* device, float radius, float height, uint32_t slices, uint32_t stacks)
+{
+    if (!device) return false;
+
+    float cylinderHeight = height - 2.0f * radius;
+    if (cylinderHeight < 0) cylinderHeight = 0;
+    float halfCylinder = cylinderHeight * 0.5f;
+
+    uint32_t hemisphereStacks = stacks / 2;
+    if (hemisphereStacks < 2) hemisphereStacks = 2;
+
+    uint32_t hemiVertices = (hemisphereStacks + 1) * (slices + 1);
+    uint32_t cylVertices = 2 * (slices + 1);
+    uint32_t numVertices = hemiVertices * 2 + cylVertices;
+    
+    uint32_t hemiIndices = hemisphereStacks * slices * 6;
+    uint32_t cylIndices = slices * 6;
+    uint32_t numIndices = hemiIndices * 2 + cylIndices;
+    
+    Vertex* vertices = new Vertex[numVertices];
+    uint32_t* indices = new uint32_t[numIndices];
+    
+    uint32_t vi = 0;
+    uint32_t ii = 0;
+
+    // ====== TOP HEMISPHERE ======
+    for (uint32_t stack = 0; stack <= hemisphereStacks; ++stack)
+    {
+        float phi = DirectX::XM_PI * 0.5f * stack / hemisphereStacks; // 0 to PI/2
+        float sinPhi = sinf(phi);
+        float cosPhi = cosf(phi);
+
+        for (uint32_t slice = 0; slice <= slices; ++slice)
+        {
+            float theta = 2.0f * DirectX::XM_PI * slice / slices;
+            float sinTheta = sinf(theta);
+            float cosTheta = cosf(theta);
+
+            float nx = sinPhi * cosTheta;
+            float ny = cosPhi;
+            float nz = sinPhi * sinTheta;
+            
+            float x = radius * nx;
+            float y = radius * ny + halfCylinder;
+            float z = radius * nz;
+            
+            vertices[vi].Position = { x, y, z };
+            vertices[vi].Normal = { nx, ny, nz };
+            vertices[vi].TexCoord = { (float)slice / slices, 0.25f * stack / hemisphereStacks };
+            vi++;
+        }
+    }
+
+    // Top hemisphere indices - corrected winding
+    for (uint32_t stack = 0; stack < hemisphereStacks; ++stack)
+    {
+        for (uint32_t slice = 0; slice < slices; ++slice)
+        {
+            uint32_t topLeft = stack * (slices + 1) + slice;
+            uint32_t topRight = topLeft + 1;
+            uint32_t bottomLeft = topLeft + (slices + 1);
+            uint32_t bottomRight = bottomLeft + 1;
+
+            indices[ii++] = topLeft;
+            indices[ii++] = topRight;
+            indices[ii++] = bottomLeft;
+
+            indices[ii++] = topRight;
+            indices[ii++] = bottomRight;
+            indices[ii++] = bottomLeft;
+        }
+    }
+
+    // ====== CYLINDER BODY ======
+    uint32_t cylinderStart = vi;
+    for (uint32_t i = 0; i <= 1; ++i)
+    {
+        float y = (i == 0) ? halfCylinder : -halfCylinder;
+
+        for (uint32_t slice = 0; slice <= slices; ++slice)
+        {
+            float theta = 2.0f * DirectX::XM_PI * slice / slices;
+            float cosT = cosf(theta);
+            float sinT = sinf(theta);
+            
+            vertices[vi].Position = { radius * cosT, y, radius * sinT };
+            vertices[vi].Normal = { cosT, 0, sinT };
+            vertices[vi].TexCoord = { (float)slice / slices, 0.25f + 0.5f * i };
+            vi++;
+        }
+    }
+
+    // Cylinder body indices - corrected winding
+    for (uint32_t slice = 0; slice < slices; ++slice)
+    {
+        uint32_t topLeft = cylinderStart + slice;
+        uint32_t topRight = topLeft + 1;
+        uint32_t bottomLeft = topLeft + (slices + 1);
+        uint32_t bottomRight = bottomLeft + 1;
+
+        indices[ii++] = topLeft;
+        indices[ii++] = topRight;
+        indices[ii++] = bottomLeft;
+
+        indices[ii++] = topRight;
+        indices[ii++] = bottomRight;
+        indices[ii++] = bottomLeft;
+    }
+
+    // ====== BOTTOM HEMISPHERE ======
+    uint32_t bottomHemiStart = vi;
+    for (uint32_t stack = 0; stack <= hemisphereStacks; ++stack)
+    {
+        float phi = DirectX::XM_PI * 0.5f + DirectX::XM_PI * 0.5f * stack / hemisphereStacks; // PI/2 to PI
+        float sinPhi = sinf(phi);
+        float cosPhi = cosf(phi);
+
+        for (uint32_t slice = 0; slice <= slices; ++slice)
+        {
+            float theta = 2.0f * DirectX::XM_PI * slice / slices;
+            float sinTheta = sinf(theta);
+            float cosTheta = cosf(theta);
+
+            float nx = sinPhi * cosTheta;
+            float ny = cosPhi;
+            float nz = sinPhi * sinTheta;
+            
+            float x = radius * nx;
+            float y = radius * ny - halfCylinder;
+            float z = radius * nz;
+            
+            vertices[vi].Position = { x, y, z };
+            vertices[vi].Normal = { nx, ny, nz };
+            vertices[vi].TexCoord = { (float)slice / slices, 0.75f + 0.25f * stack / hemisphereStacks };
+            vi++;
+        }
+    }
+
+    // Bottom hemisphere indices - corrected winding
+    for (uint32_t stack = 0; stack < hemisphereStacks; ++stack)
+    {
+        for (uint32_t slice = 0; slice < slices; ++slice)
+        {
+            uint32_t topLeft = bottomHemiStart + stack * (slices + 1) + slice;
+            uint32_t topRight = topLeft + 1;
+            uint32_t bottomLeft = topLeft + (slices + 1);
+            uint32_t bottomRight = bottomLeft + 1;
+
+            indices[ii++] = topLeft;
+            indices[ii++] = topRight;
+            indices[ii++] = bottomLeft;
+
+            indices[ii++] = topRight;
+            indices[ii++] = bottomRight;
+            indices[ii++] = bottomLeft;
+        }
+    }
+
+    m_indexCount = ii;
+
+    D3D11_BUFFER_DESC vbDesc = {};
+    vbDesc.Usage = D3D11_USAGE_DEFAULT;
+    vbDesc.ByteWidth = sizeof(Vertex) * vi;
+    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA vbData = {};
+    vbData.pSysMem = vertices;
+
+    HRESULT hr = device->CreateBuffer(&vbDesc, &vbData, m_vertexBuffer.GetAddressOf());
+    delete[] vertices;
+    
+    if (FAILED(hr)) { delete[] indices; return false; }
+
+    D3D11_BUFFER_DESC ibDesc = {};
+    ibDesc.Usage = D3D11_USAGE_DEFAULT;
+    ibDesc.ByteWidth = sizeof(uint32_t) * ii;
+    ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA ibData = {};
+    ibData.pSysMem = indices;
+
+    hr = device->CreateBuffer(&ibDesc, &ibData, m_indexBuffer.GetAddressOf());
+    delete[] indices;
+
+    return SUCCEEDED(hr);
+}
+
 bool Mesh::CreatePlane(ID3D11Device* device)
 {
     Vertex vertices[] =

@@ -1,8 +1,10 @@
 #pragma once
+#include <vector>
+#include <memory>
+#include <Windows.h>
+#include <d3d11.h>
+#include "EditorPanel.h"
 
-struct ID3D11Device;
-struct ID3D11DeviceContext;
-struct HWND__;
 
 
 namespace Engine::Editor
@@ -11,12 +13,18 @@ namespace Engine::Editor
 	{
 	public:
 		void Initialize(HWND__* hwnd, ID3D11Device* device, ID3D11DeviceContext* context);
+		void Shutdown();
 
 		void BeginFrame();
-		void Draw();
+		void Render();
 		void EndFrame();
 
-		void Shutdown();
+
+		void AddPanel(std::unique_ptr<EditorPanel> panel);
+
+	private:
+		std::vector<std::unique_ptr<EditorPanel>> m_panels;
+		bool m_showDemoWindow = false;
 	};
 }
 

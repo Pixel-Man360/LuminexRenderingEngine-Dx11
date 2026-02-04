@@ -5,7 +5,7 @@
 #include "CBPerObject.h"
 #include "CBLight.h"
 #include "CBShadow.h"
-#include "Input.h"
+#include "Engine/Core/Input.h"
 
 #include <DirectXMath.h>
 #include <WICTextureLoader.h>

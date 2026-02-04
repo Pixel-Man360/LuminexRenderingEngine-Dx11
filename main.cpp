@@ -4,10 +4,12 @@
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx11.h>
 
-#include "Window.h"
+#include "Engine/Core/Window.h"
 #include "DeviceResources.h"
 #include "Renderer.h"
-#include "Input.h"
+#include "Editor.h"
+#include "StatsPanel.h"
+#include "Engine/Core/Input.h"
 
 using namespace Engine::Core;
 
@@ -16,6 +18,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 {
     Engine::Core::Window window;
 	Engine::Core::Input input;
+	Engine::Editor::Editor editor;
 
     if (!window.Create(L"Luminex", 1280, 720, hInstance))
     {
@@ -34,20 +37,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
         return -1;
     }
 
-    // ==================== ImGui Init ====================
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
 
-    ImGuiIO& io = ImGui::GetIO();
-    // Note: Docking and Viewports require the 'docking' branch of ImGui
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+    editor.Initialize(window.GetHwnd(), deviceResources.GetDevice(), deviceResources.GetDeviceContext());
+    editor.AddPanel(std::make_unique<Engine::Editor::StatsPanel>());
 
-    ImGui::StyleColorsDark();
-
-    ImGui_ImplWin32_Init(window.GetHwnd());
-    ImGui_ImplDX11_Init(deviceResources.GetDevice(), deviceResources.GetDeviceContext());
-    // ====================================================
 
     window.SetResizeCallback([&deviceResources](int w, int h)
         {
@@ -68,38 +61,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
         window.ProcessEvents();
         input.Update();
 
-        ImGui_ImplDX11_NewFrame();
-        ImGui_ImplWin32_NewFrame();
-        ImGui::NewFrame();
+        editor.BeginFrame();
+        editor.Render();
 
-        // ======= TEMP EDITOR UI (test) =======
-        ImGui::Begin("Inspector");
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-        ImGui::End();
-        // =====================================
-
-        ImGui::Render();
-
-        // Render scene first
         renderer.Render();
 
-        // Then render ImGui on top
-        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-        }
-
-        // Now present the frame
+        editor.EndFrame();
+    
         deviceResources.Present();
     }
 
 
-    ImGui_ImplDX11_Shutdown();
-    ImGui_ImplWin32_Shutdown();
-    ImGui::DestroyContext();
+	editor.Shutdown();
 
     return 0;
 }

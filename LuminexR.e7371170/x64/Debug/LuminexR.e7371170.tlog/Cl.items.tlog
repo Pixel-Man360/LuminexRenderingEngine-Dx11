@@ -2,13 +2,16 @@ K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Camera.cpp;K:\Game 
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\ConstantBuffer.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\ConstantBuffer.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\DeviceResources.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\DeviceResources.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Editor.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Editor.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\EditorPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\EditorPanel.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Core\Input.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Input.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Core\Window.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Window.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui\imgui.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\imgui.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui\imgui_demo.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\imgui_demo.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui\imgui_draw.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\imgui_draw.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui\imgui_impl_dx11.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\imgui_impl_dx11.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui\imgui_impl_win32.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\imgui_impl_win32.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui\imgui_tables.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\imgui_tables.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui\imgui_widgets.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\imgui_widgets.obj
-K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Input.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Input.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\main.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\main.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Mesh.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Mesh.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Renderer.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Renderer.obj
@@ -16,5 +19,5 @@ K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\RenderObject.cpp;K:
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Scene.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Scene.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\SceneObject.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\SceneObject.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Shader.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Shader.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\StatsPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\StatsPanel.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Transform.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Transform.obj
-K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Window.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Window.obj

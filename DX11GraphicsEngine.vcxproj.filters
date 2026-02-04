@@ -75,9 +75,6 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Window.h">
-      <Filter>Source Files\Engine\Core</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer.h">
       <Filter>Source Files\Engine\Graphics</Filter>
     </ClInclude>
@@ -92,9 +89,6 @@
     </ClInclude>
     <ClInclude Include="ConstantBuffer.h">
       <Filter>Source Files\Engine\Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Input.h">
-      <Filter>Source Files\Engine\Core</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>Source Files\Engine\Graphics</Filter>
@@ -150,6 +144,18 @@
     <ClInclude Include="Engine\External\ImGui\imstb_truetype.h">
       <Filter>Source Files\Engine\External\ImGui</Filter>
     </ClInclude>
+    <ClInclude Include="EditorPanel.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="StatsPanel.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Core\Input.h">
+      <Filter>Source Files\Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Core\Window.h">
+      <Filter>Source Files\Engine\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11GraphicsEngine.rc">
@@ -166,13 +172,13 @@
     <Image Include="C:\Users\Mridul\Downloads\EngineIcon.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Assets\EngineIcon.ico">
+      <Filter>Assets</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>Source Files\Engine\Core</Filter>
     </ClCompile>
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files\Engine\Graphics</Filter>
@@ -188,9 +194,6 @@
     </ClCompile>
     <ClCompile Include="ConstantBuffer.cpp">
       <Filter>Source Files\Engine\Graphics</Filter>
-    </ClCompile>
-    <ClCompile Include="Input.cpp">
-      <Filter>Source Files\Engine\Core</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
       <Filter>Source Files\Engine\Graphics</Filter>
@@ -227,6 +230,21 @@
     </ClCompile>
     <ClCompile Include="Engine\External\ImGui\imgui_widgets.cpp">
       <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorPanel.cpp">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="StatsPanel.cpp">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\External\ImGui\imgui_demo.cpp">
+      <Filter>Source Files\Engine\External\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Core\Window.cpp">
+      <Filter>Source Files\Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Core\Input.cpp">
+      <Filter>Source Files\Engine\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

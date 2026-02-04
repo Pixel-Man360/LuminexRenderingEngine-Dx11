@@ -1,5 +1,5 @@
 #include "Camera.h"
-#include "Input.h"
+#include "Engine/Core/Input.h"
 
 using namespace Engine::Graphics;
 using namespace Engine::Core;

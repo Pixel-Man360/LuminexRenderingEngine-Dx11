@@ -1,12 +1,13 @@
 #include "Editor.h"
-
+#include "EditorPanel.h"
+#include <Windows.h>
 #include <imgui.h>
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
 
 using namespace Engine::Editor;
 
-void Editor::Initialize( HWND__* hwnd, ID3D11Device* device, ID3D11DeviceContext* context )
+void Editor::Initialize(HWND__* hwnd, ID3D11Device* device, ID3D11DeviceContext* context)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -28,9 +29,23 @@ void Editor::BeginFrame()
     ImGui::NewFrame();
 }
 
-void Editor::Draw()
+void Editor::Render()
 {
-    
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("View"))
+        {
+            ImGui::MenuItem("ImGui Demo", nullptr, &m_showDemoWindow);
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+
+     if (m_showDemoWindow)
+        ImGui::ShowDemoWindow(&m_showDemoWindow);
+
+    for (auto& panel : m_panels)
+        panel->OnRender();
 }
 
 void Editor::EndFrame()
@@ -45,6 +60,11 @@ void Editor::EndFrame()
         ImGui::UpdatePlatformWindows();
         ImGui::RenderPlatformWindowsDefault();
     }
+}
+
+void Editor::AddPanel(std::unique_ptr<EditorPanel> panel)
+{
+    m_panels.emplace_back(std::move(panel));
 }
 
 void Editor::Shutdown()

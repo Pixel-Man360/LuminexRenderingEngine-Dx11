@@ -139,6 +139,9 @@
     <ClInclude Include="ConstantBuffer.h" />
     <ClInclude Include="DeviceResources.h" />
     <ClInclude Include="Editor.h" />
+    <ClInclude Include="EditorPanel.h" />
+    <ClInclude Include="Engine\Core\Input.h" />
+    <ClInclude Include="Engine\Core\Window.h" />
     <ClInclude Include="Engine\External\ImGui\imconfig.h" />
     <ClInclude Include="Engine\External\ImGui\imgui.h" />
     <ClInclude Include="Engine\External\ImGui\imgui_impl_dx11.h" />
@@ -148,7 +151,6 @@
     <ClInclude Include="Engine\External\ImGui\imstb_textedit.h" />
     <ClInclude Include="Engine\External\ImGui\imstb_truetype.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="Input.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Renderer.h" />
@@ -157,14 +159,15 @@
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneObject.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="StatsPanel.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Transform.h" />
-    <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11GraphicsEngine.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Assets\EngineIcon.ico" />
     <Image Include="C:\Users\Mridul\Downloads\EngineIcon.ico" />
     <Image Include="DX11GraphicsEngine.ico" />
     <Image Include="small.ico" />
@@ -174,13 +177,16 @@
     <ClCompile Include="ConstantBuffer.cpp" />
     <ClCompile Include="DeviceResources.cpp" />
     <ClCompile Include="Editor.cpp" />
+    <ClCompile Include="EditorPanel.cpp" />
+    <ClCompile Include="Engine\Core\Input.cpp" />
+    <ClCompile Include="Engine\Core\Window.cpp" />
     <ClCompile Include="Engine\External\ImGui\imgui.cpp" />
+    <ClCompile Include="Engine\External\ImGui\imgui_demo.cpp" />
     <ClCompile Include="Engine\External\ImGui\imgui_draw.cpp" />
     <ClCompile Include="Engine\External\ImGui\imgui_impl_dx11.cpp" />
     <ClCompile Include="Engine\External\ImGui\imgui_impl_win32.cpp" />
     <ClCompile Include="Engine\External\ImGui\imgui_tables.cpp" />
     <ClCompile Include="Engine\External\ImGui\imgui_widgets.cpp" />
-    <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Renderer.cpp" />
@@ -188,8 +194,8 @@
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneObject.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="StatsPanel.cpp" />
     <ClCompile Include="Transform.cpp" />
-    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ShadowDebugPS.hlsl">

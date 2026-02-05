@@ -5,6 +5,9 @@
 #include "StatsPanel.h"
 #include "ViewportPanel.h"
 #include "MenuBarPanel.h"
+#include "MousePicker.h"
+#include "UndoManager.h"
+#include "TransformChangeCommand.h"
 #include "../Graphics/Renderer.h"
 #include <Windows.h>
 #include <imgui.h>
@@ -152,6 +155,7 @@ void Editor::Initialize(HWND__* hwnd, ID3D11Device* device, ID3D11DeviceContext*
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
+
     ImGui::StyleColorsDark();
     SetupImGuiStyle();
 
@@ -159,22 +163,31 @@ void Editor::Initialize(HWND__* hwnd, ID3D11Device* device, ID3D11DeviceContext*
     ImGui_ImplDX11_Init(device, context);
 
 	m_context = editorContext;
+	m_deviceContext = context;
+	
+	
+	// Initialize gizmo
+	m_gizmo.Initialize(device);
 
-    // Create and add the menu bar panel first
     auto menuBarPanel = std::make_unique<MenuBarPanel>();
     m_menuBar = menuBarPanel.get();
     m_panels.emplace_back(std::move(menuBarPanel));
 
-    m_panels.emplace_back(std::make_unique<SceneHierarchyPanel>());
+    auto hierarchyPanel = std::make_unique<SceneHierarchyPanel>();
+    m_hierarchyPanel = hierarchyPanel.get();
+    m_panels.emplace_back(std::move(hierarchyPanel));
     
-    // Create inspector panel and store pointer for later
     auto inspectorPanel = std::make_unique<InspectorPanel>();
     m_inspectorPanel = inspectorPanel.get();
     m_panels.emplace_back(std::move(inspectorPanel));
     
     m_panels.emplace_back(std::make_unique<StatsPanel>());
-	m_panels.emplace_back(std::make_unique<ViewportPanel>());
+    
+    auto viewportPanel = std::make_unique<ViewportPanel>();
+    m_viewportPanel = viewportPanel.get();
+    m_panels.emplace_back(std::move(viewportPanel));
 }
+
 
 void Editor::SetRenderer(Engine::Graphics::Renderer* renderer)
 {
@@ -182,6 +195,10 @@ void Editor::SetRenderer(Engine::Graphics::Renderer* renderer)
         m_menuBar->SetRenderer(renderer);
     if (m_inspectorPanel)
         m_inspectorPanel->SetRenderer(renderer);
+    if (m_hierarchyPanel)
+        m_hierarchyPanel->SetRenderer(renderer);
+    if (m_viewportPanel)
+        m_viewportPanel->SetRenderer(renderer);
 }
 
 void Editor::BeginFrame()
@@ -189,6 +206,31 @@ void Editor::BeginFrame()
     ImGui_ImplDX11_NewFrame();
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
+    
+    // Create a fullscreen dockspace
+    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowViewport(viewport->ID);
+    
+    windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+    windowFlags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    windowFlags |= ImGuiWindowFlags_NoBackground;
+    
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    
+    ImGui::Begin("DockSpaceWindow", nullptr, windowFlags);
+    ImGui::PopStyleVar(3);
+    
+    // Create the dockspace
+    ImGuiID dockspaceId = ImGui::GetID("MainDockSpace");
+    ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+    
+    ImGui::End();
 }
 
 void Editor::Render()
@@ -198,12 +240,161 @@ void Editor::Render()
 
     for (auto& panel : m_panels)
         panel->Draw(m_context);
+    
+    // Show gizmo mode in a small toolbar
+    ImGui::SetNextWindowPos(ImVec2(10, 30), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(200, 40), ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Gizmo", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize))
+    {
+        bool isTranslate = (m_context.CurrentGizmoMode == GizmoMode::Translate);
+        bool isRotate = (m_context.CurrentGizmoMode == GizmoMode::Rotate);
+        bool isScale = (m_context.CurrentGizmoMode == GizmoMode::Scale);
+        
+        if (ImGui::Selectable("W Move", isTranslate, 0, ImVec2(50, 0)))
+            m_context.CurrentGizmoMode = GizmoMode::Translate;
+        ImGui::SameLine();
+        if (ImGui::Selectable("E Rotate", isRotate, 0, ImVec2(55, 0)))
+            m_context.CurrentGizmoMode = GizmoMode::Rotate;
+        ImGui::SameLine();
+        if (ImGui::Selectable("R Scale", isScale, 0, ImVec2(50, 0)))
+            m_context.CurrentGizmoMode = GizmoMode::Scale;
+    }
+    ImGui::End();
+    
+    // Handle keyboard shortcuts for gizmo mode (W, E, R keys)
+    if (!ImGui::GetIO().WantCaptureKeyboard)
+    {
+        if (ImGui::IsKeyPressed(ImGuiKey_W))
+            m_context.CurrentGizmoMode = GizmoMode::Translate;
+        if (ImGui::IsKeyPressed(ImGuiKey_E))
+            m_context.CurrentGizmoMode = GizmoMode::Rotate;
+        if (ImGui::IsKeyPressed(ImGuiKey_R))
+            m_context.CurrentGizmoMode = GizmoMode::Scale;
+    }
+    
+    m_gizmo.SetMode(m_context.CurrentGizmoMode);
+}
+
+
+
+void Editor::RenderGizmo(const DirectX::XMMATRIX& view, 
+                         const DirectX::XMMATRIX& projection,
+                         const DirectX::XMFLOAT3& cameraPos)
+{
+    if (m_context.SelectedObject && m_deviceContext)
+    {
+        m_gizmo.Render(m_deviceContext, m_context.SelectedObject, view, projection, cameraPos);
+    }
+}
+
+void Editor::HandleInput(int mouseX, int mouseY, bool leftButtonDown, bool leftButtonPressed,
+                        const DirectX::XMMATRIX& view,
+                        const DirectX::XMMATRIX& projection,
+                        const DirectX::XMFLOAT3& cameraPos,
+                        int screenWidth, int screenHeight)
+{
+    // Don't process if ImGui wants the mouse
+    if (ImGui::GetIO().WantCaptureMouse)
+    {
+        m_wasLeftButtonDown = leftButtonDown;
+        m_lastMouseX = mouseX;
+        m_lastMouseY = mouseY;
+        return;
+    }
+    
+    // Mouse button just pressed
+    if (leftButtonPressed && !m_wasLeftButtonDown)
+    {
+        // First try gizmo interaction
+        if (m_context.SelectedObject)
+        {
+            bool gizmoHit = m_gizmo.OnMouseDown(mouseX, mouseY, m_context.SelectedObject,
+                                                 view, projection, cameraPos,
+                                                 screenWidth, screenHeight);
+            if (!gizmoHit)
+            {
+                // Try object picking
+                auto* picked = MousePicker::Pick(m_context.ActiveScene, mouseX, mouseY,
+                                                  view, projection, cameraPos,
+                                                  screenWidth, screenHeight);
+                m_context.SelectedObject = picked;
+            }
+        }
+        else
+        {
+            // No object selected, just do picking
+            auto* picked = MousePicker::Pick(m_context.ActiveScene, mouseX, mouseY,
+                                              view, projection, cameraPos,
+                                              screenWidth, screenHeight);
+            m_context.SelectedObject = picked;
+        }
+    }
+    
+    // Mouse dragging
+    if (leftButtonDown && m_gizmo.IsDragging())
+    {
+        int deltaX = mouseX - m_lastMouseX;
+        int deltaY = mouseY - m_lastMouseY;
+        
+        m_gizmo.OnMouseMove(mouseX, mouseY, deltaX, deltaY,
+                            m_context.SelectedObject,
+                            view, projection, cameraPos,
+                            screenWidth, screenHeight);
+    }
+    
+    // Mouse released - record undo if transform was changed
+    if (!leftButtonDown && m_wasLeftButtonDown)
+    {
+        if (m_gizmo.OnMouseUp(m_context.SelectedObject) && m_context.SelectedObject)
+        {
+            // Create undo command based on the gizmo mode used
+            GizmoMode dragMode = m_gizmo.GetMode();
+            DirectX::XMFLOAT3 startPos = m_gizmo.GetDragStartPos();
+            DirectX::XMFLOAT3 startRot = m_gizmo.GetDragStartRot();
+            DirectX::XMFLOAT3 startScale = m_gizmo.GetDragStartScale();
+            
+            DirectX::XMFLOAT3 endPos = m_context.SelectedObject->GetTransform().GetPosition();
+            DirectX::XMFLOAT3 endRot = m_context.SelectedObject->GetTransform().GetRotationEuler();
+            DirectX::XMFLOAT3 endScale = m_context.SelectedObject->GetTransform().GetScale();
+            
+            if (dragMode == GizmoMode::Translate)
+            {
+                auto cmd = std::make_unique<TransformChangeCommand>(
+                    m_context.SelectedObject,
+                    TransformChangeCommand::ChangeType::Position,
+                    startPos, endPos);
+                UndoManager::Get().AddCommand(std::move(cmd));
+            }
+            else if (dragMode == GizmoMode::Rotate)
+            {
+                auto cmd = std::make_unique<TransformChangeCommand>(
+                    m_context.SelectedObject,
+                    TransformChangeCommand::ChangeType::Rotation,
+                    startRot, endRot);
+                UndoManager::Get().AddCommand(std::move(cmd));
+            }
+            else if (dragMode == GizmoMode::Scale)
+            {
+                auto cmd = std::make_unique<TransformChangeCommand>(
+                    m_context.SelectedObject,
+                    TransformChangeCommand::ChangeType::Scale,
+                    startScale, endScale);
+                UndoManager::Get().AddCommand(std::move(cmd));
+            }
+        }
+    }
+    
+    m_wasLeftButtonDown = leftButtonDown;
+    m_lastMouseX = mouseX;
+    m_lastMouseY = mouseY;
 }
 
 void Editor::EndFrame()
 {
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+
+
 
     ImGuiIO& io = ImGui::GetIO();
 

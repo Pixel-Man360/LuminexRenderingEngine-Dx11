@@ -1,11 +1,17 @@
 #pragma once
 #include "EditorPanel.h"
 
+namespace Engine::Graphics { class Renderer; }
+
 namespace Engine::Editor
 {
     class SceneHierarchyPanel : public EditorPanel
     {
     public:
         void Draw(EditorContext& context) override;
+        void SetRenderer(Engine::Graphics::Renderer* renderer) { m_renderer = renderer; }
+        
+    private:
+        Engine::Graphics::Renderer* m_renderer = nullptr;
     };
 }

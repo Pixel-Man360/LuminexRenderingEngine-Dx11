@@ -68,8 +68,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
     Engine::Editor::EditorContext editorContext;
     editorContext.ActiveScene = &scene;
     
+    
     editor.Initialize(window.GetHwnd(), deviceResources.GetDevice(), deviceResources.GetDeviceContext(), editorContext);
     editor.SetRenderer(&renderer);  // Allow editor to create objects with meshes
+
 
 
 
@@ -81,11 +83,38 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
 
         // Update renderer with current selection from editor's context
         renderer.SetSelectedObject(editor.GetContext().SelectedObject);
+        
+        // Get mouse state for gizmo/picking
+        POINT mousePos;
+        GetCursorPos(&mousePos);
+        ScreenToClient(window.GetHwnd(), &mousePos);
+        bool leftButtonDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+        static bool wasLeftButtonDown = false;
+        bool leftButtonPressed = leftButtonDown && !wasLeftButtonDown;
+        
+        // Handle editor input (gizmo manipulation and object picking)
+        editor.HandleInput(
+            mousePos.x, mousePos.y,
+            leftButtonDown, leftButtonPressed,
+            renderer.GetViewMatrix(),
+            renderer.GetProjectionMatrix(),
+            renderer.GetCameraPosition(),
+            renderer.GetScreenWidth(),
+            renderer.GetScreenHeight());
+        
+        wasLeftButtonDown = leftButtonDown;
 
         editor.BeginFrame();
         editor.Render();
 
+        // Render scene to back buffer
         renderer.Render();
+        
+        // Render gizmo on top of scene
+        editor.RenderGizmo(
+            renderer.GetViewMatrix(),
+            renderer.GetProjectionMatrix(),
+            renderer.GetCameraPosition());
 
         editor.EndFrame();
     

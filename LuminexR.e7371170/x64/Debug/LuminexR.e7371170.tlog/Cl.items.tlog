@@ -4,8 +4,10 @@ K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Core\Window.
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\Editor.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Editor.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\EditorContext.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\EditorContext.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\EditorPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\EditorPanel.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\Gizmo.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Gizmo.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\InspectorPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\InspectorPanel.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\MenuBarPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\MenuBarPanel.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\MousePicker.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\MousePicker.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\SceneHierarchyPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\SceneHierarchyPanel.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\StatsPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\StatsPanel.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\ViewportPanel.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\ViewportPanel.obj

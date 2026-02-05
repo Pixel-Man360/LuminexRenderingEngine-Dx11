@@ -165,23 +165,32 @@
     <ClInclude Include="Engine\Editor\ViewportPanel.h">
       <Filter>Source Files\Engine\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Editor\Gizmo.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\GizmoMode.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
     <ClInclude Include="Engine\Scene\LightComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Editor\UndoCommand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Editor\UndoManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine\Editor\TransformChangeCommand.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\Engine\Scene</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Editor\DeleteObjectCommand.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\Engine\Editor</Filter>
     </ClInclude>
     <ClInclude Include="Engine\Editor\MenuBarPanel.h">
-      <Filter>Header Files</Filter>
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\MousePicker.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\TransformChangeCommand.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\UndoCommand.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\UndoManager.h">
+      <Filter>Source Files\Engine\Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -283,6 +292,12 @@
       <Filter>Source Files\Engine\Editor</Filter>
     </ClCompile>
     <ClCompile Include="Engine\Editor\MenuBarPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Editor\Gizmo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Editor\MousePicker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

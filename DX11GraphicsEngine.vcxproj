@@ -139,8 +139,11 @@
     <ClInclude Include="Engine\Editor\Editor.h" />
     <ClInclude Include="Engine\Editor\EditorContext.h" />
     <ClInclude Include="Engine\Editor\EditorPanel.h" />
+    <ClInclude Include="Engine\Editor\Gizmo.h" />
+    <ClInclude Include="Engine\Editor\GizmoMode.h" />
     <ClInclude Include="Engine\Editor\InspectorPanel.h" />
     <ClInclude Include="Engine\Editor\MenuBarPanel.h" />
+    <ClInclude Include="Engine\Editor\MousePicker.h" />
     <ClInclude Include="Engine\Editor\SceneHierarchyPanel.h" />
     <ClInclude Include="Engine\Editor\StatsPanel.h" />
     <ClInclude Include="Engine\Editor\TransformChangeCommand.h" />
@@ -188,8 +191,10 @@
     <ClCompile Include="Engine\Editor\Editor.cpp" />
     <ClCompile Include="Engine\Editor\EditorContext.cpp" />
     <ClCompile Include="Engine\Editor\EditorPanel.cpp" />
+    <ClCompile Include="Engine\Editor\Gizmo.cpp" />
     <ClCompile Include="Engine\Editor\InspectorPanel.cpp" />
     <ClCompile Include="Engine\Editor\MenuBarPanel.cpp" />
+    <ClCompile Include="Engine\Editor\MousePicker.cpp" />
     <ClCompile Include="Engine\Editor\SceneHierarchyPanel.cpp" />
     <ClCompile Include="Engine\Editor\StatsPanel.cpp" />
     <ClCompile Include="Engine\Editor\ViewportPanel.cpp" />

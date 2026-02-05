@@ -1,0 +1,91 @@
+﻿#include "ViewportPanel.h"
+#include "imgui.h"
+#include "../Graphics/Renderer.h"
+
+using namespace Engine::Editor;
+
+void ViewportPanel::Draw(EditorContext& context)
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    
+    if (ImGui::Begin("Scene"))
+    {
+        m_isHovered = ImGui::IsWindowHovered();
+        m_isFocused = ImGui::IsWindowFocused();
+        
+        // Embedded toolbar at the top of the viewport
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 4));
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.15f, 0.15f, 0.15f, 0.9f));
+        
+        float toolbarHeight = 28.0f;
+        ImGui::BeginChild("##ViewportToolbar", ImVec2(0, toolbarHeight), false, 
+                          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+        
+        // Gizmo mode buttons
+        bool isTranslate = (context.CurrentGizmoMode == GizmoMode::Translate);
+        bool isRotate = (context.CurrentGizmoMode == GizmoMode::Rotate);
+        bool isScale = (context.CurrentGizmoMode == GizmoMode::Scale);
+        
+        // Style selected buttons
+        ImVec4 selectedColor = ImVec4(0.3f, 0.5f, 0.8f, 1.0f);
+        ImVec4 normalColor = ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+        
+        ImGui::PushStyleColor(ImGuiCol_Button, isTranslate ? selectedColor : normalColor);
+        if (ImGui::Button("W Move", ImVec2(60, 20)))
+            context.CurrentGizmoMode = GizmoMode::Translate;
+        ImGui::PopStyleColor();
+        
+        ImGui::SameLine();
+        
+        ImGui::PushStyleColor(ImGuiCol_Button, isRotate ? selectedColor : normalColor);
+        if (ImGui::Button("E Rotate", ImVec2(60, 20)))
+            context.CurrentGizmoMode = GizmoMode::Rotate;
+        ImGui::PopStyleColor();
+        
+        ImGui::SameLine();
+        
+        ImGui::PushStyleColor(ImGuiCol_Button, isScale ? selectedColor : normalColor);
+        if (ImGui::Button("R Scale", ImVec2(60, 20)))
+            context.CurrentGizmoMode = GizmoMode::Scale;
+        ImGui::PopStyleColor();
+        
+        ImGui::EndChild();
+        
+        ImGui::PopStyleColor();  // ChildBg
+        ImGui::PopStyleVar(2);   // ItemSpacing, WindowPadding
+        
+        // Get remaining space for the viewport image
+        ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+        
+        if (m_renderer && viewportSize.x > 0 && viewportSize.y > 0)
+        {
+            m_renderer->ResizeViewport(static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
+            
+            ID3D11ShaderResourceView* srv = m_renderer->GetViewportSRV();
+            
+            if (srv)
+            {
+                // Store cursor position before drawing image
+                ImVec2 imagePos = ImGui::GetCursorScreenPos();
+                m_imagePosX = imagePos.x;
+                m_imagePosY = imagePos.y;
+                m_imageWidth = viewportSize.x;
+                m_imageHeight = viewportSize.y;
+                
+                ImGui::Image(reinterpret_cast<ImTextureID>(srv), viewportSize);
+                
+                // Check if mouse is over the image specifically
+                m_isHovered = ImGui::IsItemHovered();
+            }
+        }
+        else
+        {
+            m_imagePosX = m_imagePosY = m_imageWidth = m_imageHeight = 0;
+            ImGui::Text("No renderer attached");
+        }
+    }
+    ImGui::End();
+    
+    ImGui::PopStyleVar();
+}

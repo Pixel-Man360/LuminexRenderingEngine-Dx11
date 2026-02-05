@@ -1,0 +1,128 @@
+﻿#include <Windows.h>
+#include <iostream>
+#include <imgui.h>
+#include <imgui_impl_win32.h>
+#include <imgui_impl_dx11.h>
+
+#include "Engine/Core/Window.h"
+#include "Engine/Graphics/DeviceResources.h"
+#include "Engine/Graphics/Renderer.h"
+#include "Engine/Editor/Editor.h"
+#include "Engine/Editor/EditorContext.h"
+#include "Engine/Editor/StatsPanel.h"
+#include "Engine/Core/Input.h"
+#include "Engine/Scene/Scene.h"
+
+using namespace Engine::Core;
+using namespace Engine::Graphics;
+using namespace Engine::Editor;
+using namespace Engine::Scene;
+
+
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int)
+{
+    Window window;
+	Input input;
+	Editor editor;
+
+    if (!window.Create(L"Luminex", 1280, 720, hInstance))
+    {
+        MessageBox(nullptr, L"Failed to create window", L"Error", MB_OK);
+        return -1;
+    }
+
+    input.Initialize(window.GetHwnd());
+   
+
+
+    Engine::Graphics::DeviceResources deviceResources;
+    if (!deviceResources.Initialize(window.GetHwnd(), window.GetWidth(), window.GetHeight()))
+    {
+        MessageBox(nullptr, L"Failed to initialize Direct3D", L"Error", MB_OK);
+        return -1;
+    }
+
+
+    window.SetResizeCallback([&deviceResources](int w, int h)
+        {
+            deviceResources.Resize(w, h);
+        });
+
+    // Create the scene
+    Scene scene;
+
+    Engine::Graphics::Renderer renderer;
+    
+    // Set active scene BEFORE Initialize (CreateResources needs it)
+    renderer.SetActiveScene(&scene);
+    
+    if (!renderer.Initialize(&deviceResources))
+    {
+        MessageBox(nullptr, L"Failed to initialize renderer", L"Error", MB_OK);
+        return -1;
+    }
+
+    renderer.SetClearColor(0.247f, 0.557f, 0.651f, 1.0f);
+
+    // Set up editor context with the scene
+    Engine::Editor::EditorContext editorContext;
+    editorContext.ActiveScene = &scene;
+    
+    
+    editor.Initialize(window.GetHwnd(), deviceResources.GetDevice(), deviceResources.GetDeviceContext(), editorContext);
+    editor.SetRenderer(&renderer);  // Allow editor to create objects with meshes
+
+
+
+
+
+    while (!window.ShouldClose())
+    {
+        window.ProcessEvents();
+        input.Update();
+
+        // Update renderer with current selection from editor's context
+        renderer.SetSelectedObject(editor.GetContext().SelectedObject);
+        
+        // Get mouse state for gizmo/picking
+        POINT mousePos;
+        GetCursorPos(&mousePos);
+        ScreenToClient(window.GetHwnd(), &mousePos);
+        bool leftButtonDown = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
+        static bool wasLeftButtonDown = false;
+        bool leftButtonPressed = leftButtonDown && !wasLeftButtonDown;
+        
+        // Handle editor input (gizmo manipulation and object picking)
+        editor.HandleInput(
+            mousePos.x, mousePos.y,
+            leftButtonDown, leftButtonPressed,
+            renderer.GetViewMatrix(),
+            renderer.GetProjectionMatrix(),
+            renderer.GetCameraPosition(),
+            renderer.GetScreenWidth(),
+            renderer.GetScreenHeight());
+        
+        wasLeftButtonDown = leftButtonDown;
+
+        editor.BeginFrame();
+        editor.Render();
+
+        // Render scene to back buffer
+        renderer.Render();
+        
+        // Render gizmo on top of scene
+        editor.RenderGizmo(
+            renderer.GetViewMatrix(),
+            renderer.GetProjectionMatrix(),
+            renderer.GetCameraPosition());
+
+        editor.EndFrame();
+    
+        deviceResources.Present();
+    }
+
+
+	editor.Shutdown();
+
+    return 0;
+}

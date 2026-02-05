@@ -1,0 +1,86 @@
+﻿#pragma once
+#include "GizmoMode.h"
+#include "../Scene/SceneObject.h"
+#include "../Graphics/DeviceResources.h"
+#include <DirectXMath.h>
+#include <d3d11.h>
+#include <wrl/client.h>
+
+namespace Engine::Editor
+{
+    class Gizmo
+    {
+    public:
+        Gizmo();
+        ~Gizmo();
+        
+        bool Initialize(ID3D11Device* device);
+        void Render(ID3D11DeviceContext* context, 
+                   Engine::Scene::SceneObject* selectedObject,
+                   const DirectX::XMMATRIX& view,
+                   const DirectX::XMMATRIX& projection,
+                   const DirectX::XMFLOAT3& cameraPos);
+        
+        void SetMode(GizmoMode mode) { m_mode = mode; }
+        GizmoMode GetMode() const { return m_mode; }
+        
+        // Input handling
+        bool OnMouseDown(int mouseX, int mouseY, 
+                        Engine::Scene::SceneObject* selectedObject,
+                        const DirectX::XMMATRIX& view,
+                        const DirectX::XMMATRIX& projection,
+                        const DirectX::XMFLOAT3& cameraPos,
+                        int screenWidth, int screenHeight);
+        
+        void OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY,
+                        Engine::Scene::SceneObject* selectedObject,
+                        const DirectX::XMMATRIX& view,
+                        const DirectX::XMMATRIX& projection,
+                        const DirectX::XMFLOAT3& cameraPos,
+                        int screenWidth, int screenHeight);
+        
+        void OnMouseUp();
+        
+        bool IsDragging() const { return m_isDragging; }
+        GizmoAxis GetActiveAxis() const { return m_activeAxis; }
+        
+    private:
+        void CreateLineBuffers(ID3D11Device* device);
+        
+        // Ray-axis intersection test
+        GizmoAxis TestAxisHit(const DirectX::XMVECTOR& rayOrigin,
+                             const DirectX::XMVECTOR& rayDir,
+                             const DirectX::XMFLOAT3& gizmoPos,
+                             float scale);
+        
+        DirectX::XMVECTOR ScreenToWorldRay(int mouseX, int mouseY,
+                                           const DirectX::XMMATRIX& view,
+                                           const DirectX::XMMATRIX& projection,
+                                           int screenWidth, int screenHeight);
+        
+        GizmoMode m_mode = GizmoMode::Translate;
+        GizmoAxis m_activeAxis = GizmoAxis::None;
+        GizmoAxis m_hoveredAxis = GizmoAxis::None;
+        bool m_isDragging = false;
+        
+        // For delta calculation during drag
+        DirectX::XMFLOAT3 m_dragStartPos;
+        DirectX::XMFLOAT3 m_objectStartPos;
+        DirectX::XMFLOAT3 m_objectStartRot;
+        DirectX::XMFLOAT3 m_objectStartScale;
+        int m_lastMouseX = 0;
+        int m_lastMouseY = 0;
+        
+        // Rendering resources
+        Microsoft::WRL::ComPtr<ID3D11Buffer> m_lineVertexBuffer;
+        Microsoft::WRL::ComPtr<ID3D11Buffer> m_constantBuffer;
+        Microsoft::WRL::ComPtr<ID3D11VertexShader> m_vertexShader;
+        Microsoft::WRL::ComPtr<ID3D11PixelShader> m_pixelShader;
+        Microsoft::WRL::ComPtr<ID3D11InputLayout> m_inputLayout;
+        Microsoft::WRL::ComPtr<ID3D11RasterizerState> m_rasterizerState;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_depthStencilState;
+        
+        static constexpr float GIZMO_SIZE = 1.5f;
+        static constexpr float AXIS_HIT_THRESHOLD = 0.15f;
+    };
+}

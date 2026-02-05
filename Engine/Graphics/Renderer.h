@@ -56,9 +56,26 @@ namespace Engine::Graphics
                 { "Ground", m_groundTexture }
             };
         }
+        
+        // Camera access for gizmo/picking
+        DirectX::XMMATRIX GetViewMatrix() const { return m_camera.GetViewMatrix(); }
+        DirectX::XMMATRIX GetProjectionMatrix() const;
+        DirectX::XMFLOAT3 GetCameraPosition() const { return m_camera.GetPosition(); }
+        int GetScreenWidth() const { return static_cast<int>(m_deviceResources->GetWidth()); }
+        int GetScreenHeight() const { return static_cast<int>(m_deviceResources->GetHeight()); }
+        
+        // Viewport render target for editor
+        ID3D11ShaderResourceView* GetViewportSRV() const { return m_viewportSRV; }
+        void ResizeViewport(int width, int height);
+        int GetViewportWidth() const { return m_viewportWidth; }
+        int GetViewportHeight() const { return m_viewportHeight; }
+        
+        // Bind viewport render target for external rendering (gizmo)
+        void BindViewportRenderTarget();
 
     private:
         void GatherLightsFromScene();
+        bool CreateViewportRenderTarget(int width, int height);
 
         Engine::Scene::Scene* m_activeScene = nullptr;
         Engine::Scene::SceneObject* m_selectedObject = nullptr;
@@ -111,12 +128,21 @@ namespace Engine::Graphics
         DirectX::XMMATRIX m_lightView;
         DirectX::XMMATRIX m_lightProj;
 
+
         // Shadow debug
         bool m_showShadowDebug = false;
 
         // Debug quad
         ID3D11Buffer* m_fullscreenVB = nullptr;
 
+        // Viewport render target (for rendering scene to texture)
+        ID3D11Texture2D* m_viewportTexture = nullptr;
+        ID3D11RenderTargetView* m_viewportRTV = nullptr;
+        ID3D11ShaderResourceView* m_viewportSRV = nullptr;
+        ID3D11Texture2D* m_viewportDepthTexture = nullptr;
+        ID3D11DepthStencilView* m_viewportDSV = nullptr;
+        int m_viewportWidth = 1280;
+        int m_viewportHeight = 720;
        
         Engine::Core::Camera m_camera;
 

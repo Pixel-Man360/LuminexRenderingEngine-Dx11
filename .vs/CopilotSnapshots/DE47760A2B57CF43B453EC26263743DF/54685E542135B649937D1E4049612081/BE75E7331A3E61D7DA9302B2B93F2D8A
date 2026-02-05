@@ -1,0 +1,71 @@
+﻿#pragma once
+#include <vector>
+#include <memory>
+#include <Windows.h>
+#include <d3d11.h>
+#include <DirectXMath.h>
+#include "EditorPanel.h"
+#include "EditorContext.h"
+#include "Gizmo.h"
+
+namespace Engine::Graphics { class Renderer; }
+
+namespace Engine::Editor
+{
+	class MenuBarPanel;
+	class InspectorPanel;
+	class SceneHierarchyPanel;
+	class ViewportPanel;
+
+	class Editor
+	{
+	public:
+		void Initialize(HWND__* hwnd, ID3D11Device* device, ID3D11DeviceContext* context, EditorContext editorContext);
+		void Shutdown();
+
+		void BeginFrame();
+		void Render();
+		void EndFrame();
+		
+		// Gizmo rendering (called after scene render, before ImGui)
+		void RenderGizmo(const DirectX::XMMATRIX& view, 
+		                 const DirectX::XMMATRIX& projection,
+		                 const DirectX::XMFLOAT3& cameraPos);
+		
+		// Input handling for gizmo and picking
+		void HandleInput(int mouseX, int mouseY, bool leftButtonDown, bool leftButtonPressed,
+		                const DirectX::XMMATRIX& view,
+		                const DirectX::XMMATRIX& projection,
+		                const DirectX::XMFLOAT3& cameraPos,
+		                int screenWidth, int screenHeight);
+
+		void AddPanel(std::unique_ptr<EditorPanel> panel);
+		
+		// Set renderer for menu bar to create objects
+		void SetRenderer(Engine::Graphics::Renderer* renderer);
+		
+		EditorContext& GetContext() { return m_context; }
+		Gizmo& GetGizmo() { return m_gizmo; }
+		ViewportPanel* GetViewportPanel() { return m_viewportPanel; }
+
+	private:
+		std::vector<std::unique_ptr<EditorPanel>> m_panels;
+		MenuBarPanel* m_menuBar = nullptr;
+		InspectorPanel* m_inspectorPanel = nullptr;
+		SceneHierarchyPanel* m_hierarchyPanel = nullptr;
+		ViewportPanel* m_viewportPanel = nullptr;
+		EditorContext m_context;
+		bool m_showDemoWindow = false;
+		
+		// Gizmo system
+		Gizmo m_gizmo;
+		ID3D11DeviceContext* m_deviceContext = nullptr;
+		
+		// Input state
+		int m_lastMouseX = 0;
+		int m_lastMouseY = 0;
+		bool m_wasLeftButtonDown = false;
+	};
+}
+
+

@@ -1,4 +1,3 @@
-// MenuBarPanel.cpp
 #include "MenuBarPanel.h"
 #include "UndoManager.h"
 #include "imgui.h"
@@ -11,7 +10,7 @@
 using namespace Engine::Editor;
 using namespace Engine::Graphics;
 
-// Helper function to generate unique object name by checking existing objects in scene
+
 static std::string GenerateUniqueName(Engine::Scene::Scene* scene, const std::string& baseName)
 {
     if (!scene) return baseName;
@@ -82,7 +81,7 @@ void MenuBarPanel::Draw(EditorContext& context)
         //    ImGui::EndMenu();
         //}
 
-        // Edit Menu
+
         if (ImGui::BeginMenu("Edit"))
         {
             bool canUndo = UndoManager::Get().CanUndo();
@@ -107,10 +106,9 @@ void MenuBarPanel::Draw(EditorContext& context)
             ImGui::EndMenu();
         }
 
-        // Create Menu
+
         if (ImGui::BeginMenu("Create"))
         {
-            // 3D Objects submenu
             if (ImGui::BeginMenu("3D Object"))
             {
                 if (ImGui::MenuItem("Cube"))
@@ -161,7 +159,6 @@ void MenuBarPanel::Draw(EditorContext& context)
                 ImGui::EndMenu();
             }
 
-            // Light submenu
             if (ImGui::BeginMenu("Light"))
             {
                 if (ImGui::MenuItem("Directional Light"))
@@ -192,7 +189,6 @@ void MenuBarPanel::Draw(EditorContext& context)
 
             ImGui::Separator();
 
-            // Create Empty
             if (ImGui::MenuItem("Empty Object"))
             {
                 if (context.ActiveScene)
@@ -205,7 +201,7 @@ void MenuBarPanel::Draw(EditorContext& context)
             ImGui::EndMenu();
         }
 
-        // Window Menu (for toggling panels)
+    
         if (ImGui::BeginMenu("Window"))
         {
             ImGui::MenuItem("Scene Hierarchy", nullptr, true);
@@ -217,7 +213,7 @@ void MenuBarPanel::Draw(EditorContext& context)
         ImGui::EndMainMenuBar();
     }
 
-    // Handle keyboard shortcuts
+
     ImGuiIO& io = ImGui::GetIO();
     if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Z))
     {

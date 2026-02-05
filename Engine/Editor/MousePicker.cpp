@@ -1,0 +1,114 @@
+#include "MousePicker.h"
+
+using namespace Engine::Editor;
+using namespace DirectX;
+
+void MousePicker::ScreenToWorldRay(
+    int mouseX, int mouseY,
+    const XMMATRIX& view,
+    const XMMATRIX& projection,
+    int screenWidth, int screenHeight,
+    XMVECTOR& rayOrigin,
+    XMVECTOR& rayDirection)
+{
+  
+    float ndcX = (2.0f * mouseX / screenWidth) - 1.0f;
+    float ndcY = 1.0f - (2.0f * mouseY / screenHeight);
+    
+ 
+    XMMATRIX invProj = XMMatrixInverse(nullptr, projection);
+    XMMATRIX invView = XMMatrixInverse(nullptr, view);
+
+    XMVECTOR nearPoint = XMVectorSet(ndcX, ndcY, 0.0f, 1.0f);
+    XMVECTOR farPoint = XMVectorSet(ndcX, ndcY, 1.0f, 1.0f);
+
+    XMVECTOR nearView = XMVector4Transform(nearPoint, invProj);
+    XMVECTOR farView = XMVector4Transform(farPoint, invProj);
+    
+    nearView = XMVectorDivide(nearView, XMVectorSplatW(nearView));
+    farView = XMVectorDivide(farView, XMVectorSplatW(farView));
+    
+    XMVECTOR nearWorld = XMVector4Transform(nearView, invView);
+    XMVECTOR farWorld = XMVector4Transform(farView, invView);
+    
+    rayOrigin = nearWorld;
+    rayDirection = XMVector3Normalize(XMVectorSubtract(farWorld, nearWorld));
+}
+
+bool MousePicker::RaySphereIntersect(
+    const XMVECTOR& rayOrigin,
+    const XMVECTOR& rayDir,
+    const XMFLOAT3& sphereCenter,
+    float sphereRadius,
+    float& distance)
+{
+    XMVECTOR center = XMLoadFloat3(&sphereCenter);
+    XMVECTOR oc = XMVectorSubtract(rayOrigin, center);
+    
+    float a = XMVectorGetX(XMVector3Dot(rayDir, rayDir));
+    float b = 2.0f * XMVectorGetX(XMVector3Dot(oc, rayDir));
+    float c = XMVectorGetX(XMVector3Dot(oc, oc)) - sphereRadius * sphereRadius;
+    
+    float discriminant = b * b - 4 * a * c;
+    
+    if (discriminant < 0)
+        return false;
+    
+    float t = (-b - sqrtf(discriminant)) / (2.0f * a);
+    if (t < 0)
+    {
+        t = (-b + sqrtf(discriminant)) / (2.0f * a);
+        if (t < 0)
+            return false;
+    }
+    
+    distance = t;
+    return true;
+}
+
+Engine::Scene::SceneObject* MousePicker::Pick(
+    Engine::Scene::Scene* scene,
+    int mouseX, int mouseY,
+    const XMMATRIX& view,
+    const XMMATRIX& projection,
+    const XMFLOAT3& cameraPos,
+    int screenWidth, int screenHeight)
+{
+    if (!scene) return nullptr;
+    
+    XMVECTOR rayOrigin, rayDirection;
+    ScreenToWorldRay(mouseX, mouseY, view, projection, 
+                     screenWidth, screenHeight, 
+                     rayOrigin, rayDirection);
+    
+    Engine::Scene::SceneObject* closestObject = nullptr;
+    float closestDistance = FLT_MAX;
+    
+    for (auto& obj : scene->GetObjects())
+    {
+
+        if (!obj->GetMesh()) continue;
+        
+        XMFLOAT3 objPos = obj->GetTransform().GetPosition();
+        XMFLOAT3 objScale = obj->GetTransform().GetScale();
+        
+
+        float maxScale = objScale.x;
+        if (objScale.y > maxScale) maxScale = objScale.y;
+        if (objScale.z > maxScale) maxScale = objScale.z;
+        
+        float radius = 1.5f * maxScale;
+        
+        float distance;
+        if (RaySphereIntersect(rayOrigin, rayDirection, objPos, radius, distance))
+        {
+            if (distance < closestDistance)
+            {
+                closestDistance = distance;
+                closestObject = obj.get();
+            }
+        }
+    }
+    
+    return closestObject;
+}

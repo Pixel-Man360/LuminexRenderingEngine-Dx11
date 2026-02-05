@@ -1,0 +1,12 @@
+﻿// ViewportPanel.h
+#pragma once
+#include "EditorPanel.h"
+
+namespace Engine::Editor
+{
+    class ViewportPanel : public EditorPanel
+    {
+    public:
+        void Draw(EditorContext& context) override;
+    };
+}

@@ -1,0 +1,10 @@
+﻿// ViewportPanel.cpp
+#include "ViewportPanel.h"
+#include "imgui.h"
+
+using namespace Engine::Editor;
+
+void ViewportPanel::Draw(EditorContext&)
+{
+   
+}

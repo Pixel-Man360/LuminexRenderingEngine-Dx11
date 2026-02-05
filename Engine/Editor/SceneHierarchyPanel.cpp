@@ -1,10 +1,54 @@
-// SceneHierarchyPanel.cpp
 #include "SceneHierarchyPanel.h"
 #include "UndoManager.h"
 #include "DeleteObjectCommand.h"
 #include "imgui.h"
+#include "../Graphics/Renderer.h"
+#include "../Scene/LightComponent.h"
+#include <regex>
 
 using namespace Engine::Editor;
+
+
+static std::string GenerateUniqueName(Engine::Scene::Scene* scene, const std::string& baseName)
+{
+    if (!scene) return baseName;
+    
+    int highestNumber = 0;
+    bool baseNameExists = false;
+    
+    std::regex pattern("^" + baseName + "(?: \\((\\d+)\\))?$");
+    
+    for (auto& obj : scene->GetObjects())
+    {
+        std::smatch match;
+        std::string objName = obj->GetName();
+        
+        if (std::regex_match(objName, match, pattern))
+        {
+            if (match[1].matched)
+            {
+                int num = std::stoi(match[1].str());
+                if (num > highestNumber)
+                    highestNumber = num;
+            }
+            else
+            {
+                baseNameExists = true;
+            }
+        }
+    }
+    
+    if (!baseNameExists && highestNumber == 0)
+        return baseName;
+    else if (!baseNameExists)
+        return baseName;
+    else
+    {
+        int nextNumber = highestNumber + 1;
+        if (nextNumber < 2) nextNumber = 2;
+        return baseName + " (" + std::to_string(nextNumber) + ")";
+    }
+}
 
 void SceneHierarchyPanel::Draw(EditorContext& context)
 {
@@ -28,7 +72,6 @@ void SceneHierarchyPanel::Draw(EditorContext& context)
             context.SelectedObject = obj.get();
         }
 
-        // Right-click context menu
         if (ImGui::BeginPopupContextItem())
         {
             if (ImGui::MenuItem("Delete"))
@@ -39,21 +82,103 @@ void SceneHierarchyPanel::Draw(EditorContext& context)
         }
     }
 
-    // Delete object using undo system
     if (objectToDelete)
     {
         auto cmd = std::make_unique<DeleteObjectCommand>(context, objectToDelete);
         UndoManager::Get().ExecuteCommand(std::move(cmd));
     }
 
-    // Right-click on empty space to create new object
+
     if (ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
     {
+        if (ImGui::BeginMenu("3D Object"))
+        {
+            if (ImGui::MenuItem("Cube"))
+            {
+                if (context.ActiveScene && m_renderer)
+                {
+                    auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Cube"));
+                    obj->SetMesh(m_renderer->GetCubeMesh());
+                    context.SelectedObject = obj;
+                }
+            }
+            if (ImGui::MenuItem("Sphere"))
+            {
+                if (context.ActiveScene && m_renderer)
+                {
+                    auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Sphere"));
+                    obj->SetMesh(m_renderer->GetSphereMesh());
+                    context.SelectedObject = obj;
+                }
+            }
+            if (ImGui::MenuItem("Cylinder"))
+            {
+                if (context.ActiveScene && m_renderer)
+                {
+                    auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Cylinder"));
+                    obj->SetMesh(m_renderer->GetCylinderMesh());
+                    context.SelectedObject = obj;
+                }
+            }
+            if (ImGui::MenuItem("Capsule"))
+            {
+                if (context.ActiveScene && m_renderer)
+                {
+                    auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Capsule"));
+                    obj->SetMesh(m_renderer->GetCapsuleMesh());
+                    context.SelectedObject = obj;
+                }
+            }
+            if (ImGui::MenuItem("Plane"))
+            {
+                if (context.ActiveScene && m_renderer)
+                {
+                    auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Plane"));
+                    obj->SetMesh(m_renderer->GetPlaneMesh());
+                    context.SelectedObject = obj;
+                }
+            }
+            ImGui::EndMenu();
+        }
+
+       
+        if (ImGui::BeginMenu("Light"))
+        {
+            if (ImGui::MenuItem("Directional Light"))
+            {
+                if (context.ActiveScene)
+                {
+                    auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Directional Light"));
+                    obj->AddLightComponent();
+                    obj->GetLightComponent()->SetType(Engine::Scene::LightType::Directional);
+                    obj->GetTransform().SetRotationEuler({ 50.0f, -30.0f, 0.0f });
+                    context.SelectedObject = obj;
+                }
+            }
+            if (ImGui::MenuItem("Point Light"))
+            {
+                if (context.ActiveScene)
+                {
+                    auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Point Light"));
+                    obj->AddLightComponent();
+                    obj->GetLightComponent()->SetType(Engine::Scene::LightType::Point);
+                    obj->GetLightComponent()->SetRange(10.0f);
+                    obj->GetTransform().SetPosition({ 0.0f, 3.0f, 0.0f });
+                    context.SelectedObject = obj;
+                }
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::Separator();
+
+
         if (ImGui::MenuItem("Create Empty"))
         {
-            auto* newObj = context.ActiveScene->CreateObject("New Object");
+            auto* newObj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Empty"));
             context.SelectedObject = newObj;
         }
+
         ImGui::EndPopup();
     }
 

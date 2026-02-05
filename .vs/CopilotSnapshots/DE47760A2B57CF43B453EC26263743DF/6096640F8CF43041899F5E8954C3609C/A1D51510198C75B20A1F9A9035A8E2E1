@@ -1,0 +1,26 @@
+﻿// ViewportPanel.h
+#pragma once
+#include "EditorPanel.h"
+#include <d3d11.h>
+#include <wrl/client.h>
+
+namespace Engine::Graphics { class Renderer; }
+
+namespace Engine::Editor
+{
+    class ViewportPanel : public EditorPanel
+    {
+    public:
+        void Draw(EditorContext& context) override;
+        void SetRenderer(Engine::Graphics::Renderer* renderer) { m_renderer = renderer; }
+        
+        // Get viewport dimensions for input handling
+        bool IsHovered() const { return m_isHovered; }
+        bool IsFocused() const { return m_isFocused; }
+        
+    private:
+        Engine::Graphics::Renderer* m_renderer = nullptr;
+        bool m_isHovered = false;
+        bool m_isFocused = false;
+    };
+}

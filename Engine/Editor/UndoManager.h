@@ -15,23 +15,20 @@ namespace Engine::Editor
             return instance;
         }
 
-        // Execute a command and add it to the undo stack
+  
         void ExecuteCommand(std::unique_ptr<UndoCommand> command)
         {
             command->Execute();
             m_undoStack.push(std::move(command));
             
-            // Clear redo stack when new command is executed
             while (!m_redoStack.empty())
                 m_redoStack.pop();
         }
 
-        // Add a command without executing it (for when action already happened)
         void AddCommand(std::unique_ptr<UndoCommand> command)
         {
             m_undoStack.push(std::move(command));
             
-            // Clear redo stack
             while (!m_redoStack.empty())
                 m_redoStack.pop();
         }

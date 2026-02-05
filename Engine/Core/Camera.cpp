@@ -34,12 +34,14 @@ void Camera::Update(float dt)
         0.0f
     );
 
+	XMVECTOR up = { 0,1,0 };
+
     XMVECTOR right = XMVector3Cross({ 0,1,0 }, forward);
 
     XMVECTOR pos = XMLoadFloat3(&m_position);
 
-    if (Input::IsKeyDown('W')) pos += forward * m_moveSpeed * dt;
-    if (Input::IsKeyDown('S')) pos -= forward * m_moveSpeed * dt;
+    if (Input::IsKeyDown('W')) pos += up * m_moveSpeed * dt;
+    if (Input::IsKeyDown('S')) pos -= up * m_moveSpeed * dt;
     if (Input::IsKeyDown('A')) pos -= right * m_moveSpeed * dt;
     if (Input::IsKeyDown('D')) pos += right * m_moveSpeed * dt;
 

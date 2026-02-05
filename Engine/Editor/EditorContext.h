@@ -2,6 +2,7 @@
 
 #include "../Scene/Scene.h"
 #include "../Scene/SceneObject.h"
+#include "GizmoMode.h"
 
 namespace Engine::Editor
 {
@@ -10,5 +11,8 @@ namespace Engine::Editor
         Engine::Scene::Scene* ActiveScene = nullptr;
         Engine::Scene::SceneObject* SelectedObject = nullptr;
         bool ShowEditor = true;
+        
+        // Gizmo state
+        GizmoMode CurrentGizmoMode = GizmoMode::Translate;
     };
 }

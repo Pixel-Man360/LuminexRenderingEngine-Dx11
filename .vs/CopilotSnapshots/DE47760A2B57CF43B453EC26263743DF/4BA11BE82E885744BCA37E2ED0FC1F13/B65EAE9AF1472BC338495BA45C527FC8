@@ -1,0 +1,39 @@
+﻿// ViewportPanel.cpp
+#include "ViewportPanel.h"
+#include "imgui.h"
+#include "../Graphics/Renderer.h"
+
+using namespace Engine::Editor;
+
+void ViewportPanel::Draw(EditorContext& context)
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    
+    if (ImGui::Begin("Scene"))
+    {
+        m_isHovered = ImGui::IsWindowHovered();
+        m_isFocused = ImGui::IsWindowFocused();
+        
+        ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+        
+        if (m_renderer && viewportSize.x > 0 && viewportSize.y > 0)
+        {
+
+            m_renderer->ResizeViewport(static_cast<int>(viewportSize.x), static_cast<int>(viewportSize.y));
+            
+            ID3D11ShaderResourceView* srv = m_renderer->GetViewportSRV();
+            
+            if (srv)
+            {
+                ImGui::Image(reinterpret_cast<ImTextureID>(srv), viewportSize);
+            }
+        }
+        else
+        {
+            ImGui::Text("No renderer attached");
+        }
+    }
+    ImGui::End();
+    
+    ImGui::PopStyleVar();
+}

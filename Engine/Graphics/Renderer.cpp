@@ -444,7 +444,96 @@ bool Renderer::CreateResources()
     sunLight->GetLightComponent()->SetIntensity(1.0f);
     sunLight->GetTransform().SetRotationEuler({ 60.0f, -60.0f, 0.0f });
 
+    // Create initial viewport render target
+    if (!CreateViewportRenderTarget(m_viewportWidth, m_viewportHeight))
+        return false;
+
     return true;
+}
+
+bool Renderer::CreateViewportRenderTarget(int width, int height)
+{
+    ID3D11Device* device = m_deviceResources->GetDevice();
+    
+    // Release existing resources
+    if (m_viewportSRV) { m_viewportSRV->Release(); m_viewportSRV = nullptr; }
+    if (m_viewportRTV) { m_viewportRTV->Release(); m_viewportRTV = nullptr; }
+    if (m_viewportTexture) { m_viewportTexture->Release(); m_viewportTexture = nullptr; }
+    if (m_viewportDSV) { m_viewportDSV->Release(); m_viewportDSV = nullptr; }
+    if (m_viewportDepthTexture) { m_viewportDepthTexture->Release(); m_viewportDepthTexture = nullptr; }
+    
+    if (width <= 0 || height <= 0)
+        return false;
+    
+    m_viewportWidth = width;
+    m_viewportHeight = height;
+    
+    // Create color texture
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    texDesc.Width = width;
+    texDesc.Height = height;
+    texDesc.MipLevels = 1;
+    texDesc.ArraySize = 1;
+    texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    texDesc.SampleDesc.Count = 1;
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+    
+    if (FAILED(device->CreateTexture2D(&texDesc, nullptr, &m_viewportTexture)))
+        return false;
+    
+    // Create RTV
+    if (FAILED(device->CreateRenderTargetView(m_viewportTexture, nullptr, &m_viewportRTV)))
+        return false;
+    
+    // Create SRV
+    if (FAILED(device->CreateShaderResourceView(m_viewportTexture, nullptr, &m_viewportSRV)))
+        return false;
+    
+    // Create depth texture
+    D3D11_TEXTURE2D_DESC depthDesc = {};
+    depthDesc.Width = width;
+    depthDesc.Height = height;
+    depthDesc.MipLevels = 1;
+    depthDesc.ArraySize = 1;
+    depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+    depthDesc.SampleDesc.Count = 1;
+    depthDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    
+    if (FAILED(device->CreateTexture2D(&depthDesc, nullptr, &m_viewportDepthTexture)))
+        return false;
+    
+    // Create DSV
+    if (FAILED(device->CreateDepthStencilView(m_viewportDepthTexture, nullptr, &m_viewportDSV)))
+        return false;
+    
+    return true;
+}
+
+void Renderer::ResizeViewport(int width, int height)
+{
+    if (width != m_viewportWidth || height != m_viewportHeight)
+    {
+        CreateViewportRenderTarget(width, height);
+    }
+}
+
+void Renderer::BindViewportRenderTarget()
+{
+    ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
+    
+    if (m_viewportRTV && m_viewportDSV)
+    {
+        context->OMSetRenderTargets(1, &m_viewportRTV, m_viewportDSV);
+        
+        D3D11_VIEWPORT vp{};
+        vp.Width = static_cast<float>(m_viewportWidth);
+        vp.Height = static_cast<float>(m_viewportHeight);
+        vp.MinDepth = 0.0f;
+        vp.MaxDepth = 1.0f;
+        context->RSSetViewports(1, &vp);
+    }
 }
 
 void Renderer::GatherLightsFromScene()
@@ -465,6 +554,7 @@ void Renderer::GatherLightsFromScene()
         light.Color = lightComp->GetColor();
         light.Intensity = lightComp->GetIntensity();
         light.Range = lightComp->GetRange();
+        
         
         light.Position = obj->GetTransform().GetPosition();
         
@@ -665,6 +755,7 @@ void Renderer::MainRenderPass()
     ID3D11RenderTargetView* rtv = m_deviceResources->GetRenderTargetView();
     ID3D11DepthStencilView* dsv = m_deviceResources->GetDepthStencilView();
     context->OMSetRenderTargets(1, &rtv, dsv);
+
 
     D3D11_VIEWPORT vp{};
     vp.Width = (float)m_deviceResources->GetWidth();
@@ -905,9 +996,29 @@ void Renderer::SetSelectedObject(Engine::Scene::SceneObject* obj)
     m_selectedObject = obj;
 }
 
+DirectX::XMMATRIX Renderer::GetProjectionMatrix() const
+{
+    float aspectRatio = (m_viewportHeight > 0) 
+        ? static_cast<float>(m_viewportWidth) / static_cast<float>(m_viewportHeight)
+        : m_deviceResources->GetAspectRatio();
+    
+    return XMMatrixPerspectiveFovLH(
+        XM_PIDIV4,
+        aspectRatio,
+        m_nearZ,
+        m_farZ);
+}
+
 
 void Renderer::Release()
 {
+    // Release viewport resources
+    if (m_viewportSRV) m_viewportSRV->Release();
+    if (m_viewportRTV) m_viewportRTV->Release();
+    if (m_viewportTexture) m_viewportTexture->Release();
+    if (m_viewportDSV) m_viewportDSV->Release();
+    if (m_viewportDepthTexture) m_viewportDepthTexture->Release();
+    
     if (m_rasterizerState)  m_rasterizerState->Release();
     if (m_depthStencilState) m_depthStencilState->Release();
     if (m_brickTexture)   m_brickTexture->Release();     

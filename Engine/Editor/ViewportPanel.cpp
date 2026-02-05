@@ -1,12 +1,9 @@
-// ViewportPanel.cpp
 #include "ViewportPanel.h"
 #include "imgui.h"
 
 using namespace Engine::Editor;
 
-void ViewportPanel::Draw(EditorContext&)
+void ViewportPanel::Draw(EditorContext& context)
 {
-    ImGui::Begin("Viewport");
-    ImGui::Text("Renderer output will go here");
-    ImGui::End();
+    // Viewport panel disabled - rendering directly to back buffer
 }

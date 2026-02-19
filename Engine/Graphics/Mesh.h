@@ -3,6 +3,7 @@
 #include <d3d11.h>
 #include <wrl/client.h>
 #include <vector>
+#include <string>
 #include <DirectXMath.h>
 
 using Microsoft::WRL::ComPtr;
@@ -30,6 +31,7 @@ namespace Engine::Graphics
 		bool CreateCylinder(ID3D11Device* device, float radius = 0.5f, float height = 2.0f, uint32_t slices = 32);
 		bool CreateCapsule(ID3D11Device* device, float radius = 0.5f, float height = 2.0f, uint32_t slices = 32, uint32_t stacks = 16);
 		bool CreatePlane(ID3D11Device* device);
+        bool LoadFromFile(ID3D11Device* device, const std::string& filepath);
 
         void Draw(ID3D11DeviceContext* context);
 

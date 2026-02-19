@@ -1,0 +1,8 @@
+﻿{
+  "name": "luminex-rendering-engine",
+  "version": "1.0.0",
+  "description": "Luminex Rendering Engine - DirectX 11",
+  "dependencies": [
+    "assimp"
+  ]
+}

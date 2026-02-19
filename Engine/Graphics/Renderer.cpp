@@ -1045,3 +1045,23 @@ void Renderer::Release()
     delete m_cbShadow;
     delete m_shadowShader;
 }
+
+Mesh* Renderer::ImportMesh(const std::string& filepath)
+{
+    if (!m_deviceResources) return nullptr;
+
+    auto mesh = std::make_unique<Mesh>();
+    if (!mesh->LoadFromFile(m_deviceResources->GetDevice(), filepath))
+    {
+        return nullptr;
+    }
+
+    Mesh* ptr = mesh.get();
+    m_importedMeshes.push_back(std::move(mesh));
+    return ptr;
+}
+
+ID3D11Device* Renderer::GetDevice() const
+{
+    return m_deviceResources ? m_deviceResources->GetDevice() : nullptr;
+}

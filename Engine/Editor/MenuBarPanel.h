@@ -1,7 +1,8 @@
 #pragma once
 #include "EditorPanel.h"
 
-namespace Engine::Graphics { 
+namespace Engine::Graphics 
+{ 
     class Mesh; 
     class Renderer;
 }

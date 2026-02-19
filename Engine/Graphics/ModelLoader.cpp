@@ -1,7 +1,9 @@
+#define NOMINMAX
 #include "ModelLoader.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <Windows.h>
 
 using namespace Engine::Graphics;
 
@@ -18,7 +20,12 @@ bool ModelLoader::LoadFromFile(const std::string& filepath, ID3D11Device* device
         aiProcess_JoinIdenticalVertices);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+    {
+        // Show error message for debugging
+        std::string errorMsg = "Failed to load model: " + filepath + "\n\nAssimp Error: " + importer.GetErrorString();
+        MessageBoxA(nullptr, errorMsg.c_str(), "Model Import Error", MB_OK | MB_ICONERROR);
         return false;
+    }
 
     // Process all meshes in the scene
     for (unsigned int m = 0; m < scene->mNumMeshes; m++)

@@ -1,4 +1,5 @@
 #include "Mesh.h"
+#include "ModelLoader.h"
 #include <stdexcept>
 
 using namespace Engine::Graphics;
@@ -590,6 +591,11 @@ void Mesh::Draw(ID3D11DeviceContext* context)
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     context->DrawIndexed(m_indexCount, 0, 0);
+}
+
+bool Mesh::LoadFromFile(ID3D11Device* device, const std::string& filepath)
+{
+    return ModelLoader::CreateMeshFromFile(filepath, device, m_vertexBuffer, m_indexBuffer, m_indexCount);
 }
 
 void Mesh::Release()

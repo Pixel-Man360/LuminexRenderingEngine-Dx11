@@ -2,6 +2,8 @@
 
 #include <DirectXMath.h>
 #include <vector>
+#include <memory>
+#include <string>
 #include "DeviceResources.h"
 #include "../Core/Camera.h"
 #include "../Scene/Scene.h"
@@ -73,9 +75,14 @@ namespace Engine::Graphics
         // Bind viewport render target for external rendering (gizmo)
         void BindViewportRenderTarget();
 
+        // Import mesh from file (returns nullptr on failure)
+        Mesh* ImportMesh(const std::string& filepath);
+        ID3D11Device* GetDevice() const;
+
     private:
         void GatherLightsFromScene();
         bool CreateViewportRenderTarget(int width, int height);
+
 
         Engine::Scene::Scene* m_activeScene = nullptr;
         Engine::Scene::SceneObject* m_selectedObject = nullptr;
@@ -89,6 +96,7 @@ namespace Engine::Graphics
 		Mesh* m_cylinder = nullptr;
 		Mesh* m_capsule = nullptr;
 		Mesh* m_planeMesh = nullptr;
+        std::vector<std::unique_ptr<Mesh>> m_importedMeshes;
         ConstantBuffer* m_cbPerObject = nullptr;
         ConstantBuffer* m_cbLight = nullptr;
 		ConstantBuffer* m_cbShadow = nullptr;

@@ -8,7 +8,7 @@ void StatsPanel::Draw(EditorContext&)
     ImGui::Begin("Stats");
 
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-    ImGui::Text("Frame Time: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::Text("Frame Time: %.3f ms", ImGui::GetIO().DeltaTime * 1000.0f);
 
     ImGui::End();
 }

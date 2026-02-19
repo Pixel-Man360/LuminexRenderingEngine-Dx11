@@ -2,14 +2,42 @@
 #include "UndoManager.h"
 #include "imgui.h"
 #include "../Graphics/Renderer.h"
+#include "../Graphics/Mesh.h"
 #include "../Scene/Scene.h"
 #include "../Scene/SceneObject.h"
 #include "../Scene/LightComponent.h"
 #include <regex>
+#include <Windows.h>
+#include <commdlg.h>
+#include <filesystem>
 
 using namespace Engine::Editor;
 using namespace Engine::Graphics;
 
+
+static std::string OpenMeshFileDialog()
+{
+    char filename[MAX_PATH] = { 0 };
+
+    OPENFILENAMEA ofn = {};
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = nullptr;
+    ofn.lpstrFilter = "3D Models\0*.obj;*.fbx;*.gltf;*.glb;*.dae;*.3ds;*.blend\0"
+                      "OBJ Files (*.obj)\0*.obj\0"
+                      "FBX Files (*.fbx)\0*.fbx\0"
+                      "glTF Files (*.gltf;*.glb)\0*.gltf;*.glb\0"
+                      "All Files (*.*)\0*.*\0";
+    ofn.lpstrFile = filename;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.lpstrTitle = "Import Mesh";
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+
+    if (GetOpenFileNameA(&ofn))
+    {
+        return std::string(filename);
+    }
+    return "";
+}
 
 static std::string GenerateUniqueName(Engine::Scene::Scene* scene, const std::string& baseName)
 {
@@ -210,6 +238,31 @@ void MenuBarPanel::Draw(EditorContext& context)
             ImGui::EndMenu();
         }
 
+        if (ImGui::BeginMenu("Assets"))
+        {
+            if(ImGui::MenuItem("Import Mesh"))
+            {
+                std::string filepath = OpenMeshFileDialog();
+                if (!filepath.empty() && context.ActiveScene && m_renderer)
+                {
+                    Mesh* importedMesh = m_renderer->ImportMesh(filepath);
+                    if (importedMesh)
+                    {
+                        // Extract filename without extension for object name
+                        std::filesystem::path path(filepath);
+                        std::string meshName = path.stem().string();
+
+                        auto* obj = context.ActiveScene->CreateObject(
+                            GenerateUniqueName(context.ActiveScene, meshName));
+                        obj->SetMesh(importedMesh);
+                        context.SelectedObject = obj;
+                    }
+                }
+            }
+
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMainMenuBar();
     }
 
@@ -219,7 +272,7 @@ void MenuBarPanel::Draw(EditorContext& context)
     {
         UndoManager::Get().Undo();
     }
-    if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Y))
+    if (io.KeyCtrl && io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_Z))
     {
         UndoManager::Get().Redo();
     }

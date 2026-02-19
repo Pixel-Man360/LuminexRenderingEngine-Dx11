@@ -154,14 +154,13 @@ void Gizmo::CreateLineBuffers(ID3D11Device* device)
     
     float len = GIZMO_SIZE;
     float arrowSize = 0.2f;
-    float thickness = 0.02f;  // Offset for thicker lines
+    float thickness = 0.01f;  
     
     // Helper lambda to add a thick line (multiple offset lines)
     auto addThickLine = [&](XMFLOAT3 start, XMFLOAT3 end, XMFLOAT4 color, XMFLOAT3 offset1, XMFLOAT3 offset2) {
-        // Center line
+
         vertices.push_back({ start, color });
         vertices.push_back({ end, color });
-        // Offset lines for thickness
         vertices.push_back({ {start.x + offset1.x, start.y + offset1.y, start.z + offset1.z}, color });
         vertices.push_back({ {end.x + offset1.x, end.y + offset1.y, end.z + offset1.z}, color });
         vertices.push_back({ {start.x - offset1.x, start.y - offset1.y, start.z - offset1.z}, color });
@@ -172,7 +171,7 @@ void Gizmo::CreateLineBuffers(ID3D11Device* device)
         vertices.push_back({ {end.x - offset2.x, end.y - offset2.y, end.z - offset2.z}, color });
     };
 
-    // X axis (red) - thick line
+    // X axis (red) 
     addThickLine({0, 0, 0}, {len, 0, 0}, red, {0, thickness, 0}, {0, 0, thickness});
     // X arrow head
     vertices.push_back({ {len, 0, 0}, red });
@@ -184,7 +183,7 @@ void Gizmo::CreateLineBuffers(ID3D11Device* device)
     vertices.push_back({ {len, 0, 0}, red });
     vertices.push_back({ {len - arrowSize, 0, -arrowSize * 0.5f}, red });
 
-    // Y axis (green) - thick line
+    // Y axis (green) 
     addThickLine({0, 0, 0}, {0, len, 0}, green, {thickness, 0, 0}, {0, 0, thickness});
     // Y arrow head
     vertices.push_back({ {0, len, 0}, green });
@@ -196,7 +195,7 @@ void Gizmo::CreateLineBuffers(ID3D11Device* device)
     vertices.push_back({ {0, len, 0}, green });
     vertices.push_back({ {0, len - arrowSize, -arrowSize * 0.5f}, green });
 
-    // Z axis (blue) - thick line
+    // Z axis (blue) 
     addThickLine({0, 0, 0}, {0, 0, len}, blue, {thickness, 0, 0}, {0, thickness, 0});
     // Z arrow head
     vertices.push_back({ {0, 0, len}, blue });
@@ -232,7 +231,6 @@ void Gizmo::Render(ID3D11DeviceContext* context,
 {
     if (!selectedObject || m_mode == GizmoMode::None) return;
     
-    // Save current render states to restore after gizmo rendering
     ID3D11RasterizerState* prevRasterizerState = nullptr;
     ID3D11DepthStencilState* prevDepthStencilState = nullptr;
     UINT prevStencilRef = 0;

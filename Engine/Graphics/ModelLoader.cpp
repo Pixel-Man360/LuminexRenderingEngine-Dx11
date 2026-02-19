@@ -1,0 +1,114 @@
+#include "ModelLoader.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+using namespace Engine::Graphics;
+
+bool ModelLoader::LoadFromFile(const std::string& filepath, ID3D11Device* device,
+                               std::vector<Vertex>& outVertices, std::vector<uint32_t>& outIndices)
+{
+    Assimp::Importer importer;
+
+    const aiScene* scene = importer.ReadFile(filepath,
+        aiProcess_Triangulate |
+        aiProcess_FlipUVs |           
+        aiProcess_CalcTangentSpace |
+        aiProcess_GenNormals |
+        aiProcess_JoinIdenticalVertices);
+
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+        return false;
+
+    // Process all meshes in the scene
+    for (unsigned int m = 0; m < scene->mNumMeshes; m++)
+    {
+        aiMesh* mesh = scene->mMeshes[m];
+        uint32_t baseVertex = static_cast<uint32_t>(outVertices.size());
+
+        // Extract vertices
+        for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+        {
+            Vertex vertex{};
+
+            vertex.Position = 
+            {
+                mesh->mVertices[i].x,
+                mesh->mVertices[i].y,
+                mesh->mVertices[i].z
+            };
+
+            if (mesh->HasNormals())
+            {
+                vertex.Normal = 
+                {
+                    mesh->mNormals[i].x,
+                    mesh->mNormals[i].y,
+                    mesh->mNormals[i].z
+                };
+            }
+
+            if (mesh->mTextureCoords[0])
+            {
+                vertex.TexCoord = 
+                {
+                    mesh->mTextureCoords[0][i].x,
+                    mesh->mTextureCoords[0][i].y
+                };
+            }
+
+            outVertices.push_back(vertex);
+        }
+
+        // Extract indices
+        for (unsigned int i = 0; i < mesh->mNumFaces; i++)
+        {
+            aiFace& face = mesh->mFaces[i];
+            for (unsigned int j = 0; j < face.mNumIndices; j++)
+            {
+                outIndices.push_back(baseVertex + face.mIndices[j]);
+            }
+        }
+    }
+
+    return true;
+}
+
+bool ModelLoader::CreateMeshFromFile(const std::string& filepath, ID3D11Device* device,
+                                     ComPtr<ID3D11Buffer>& vertexBuffer, ComPtr<ID3D11Buffer>& indexBuffer,
+                                     UINT& indexCount)
+{
+    std::vector<Vertex> vertices;
+    std::vector<uint32_t> indices;
+
+    if (!LoadFromFile(filepath, device, vertices, indices))
+        return false;
+
+    indexCount = static_cast<UINT>(indices.size());
+
+    // Create vertex buffer
+    D3D11_BUFFER_DESC vbd{};
+    vbd.Usage = D3D11_USAGE_DEFAULT;
+    vbd.ByteWidth = static_cast<UINT>(sizeof(Vertex) * vertices.size());
+    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA vData{};
+    vData.pSysMem = vertices.data();
+
+    if (FAILED(device->CreateBuffer(&vbd, &vData, &vertexBuffer)))
+        return false;
+
+    // Create index buffer
+    D3D11_BUFFER_DESC ibd{};
+    ibd.Usage = D3D11_USAGE_DEFAULT;
+    ibd.ByteWidth = static_cast<UINT>(sizeof(uint32_t) * indices.size());
+    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA iData{};
+    iData.pSysMem = indices.data();
+
+    if (FAILED(device->CreateBuffer(&ibd, &iData, &indexBuffer)))
+        return false;
+
+    return true;
+}

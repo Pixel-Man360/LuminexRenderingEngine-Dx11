@@ -165,11 +165,13 @@
     <ClInclude Include="Engine\External\ImGui\imstb_textedit.h" />
     <ClInclude Include="Engine\External\ImGui\imstb_truetype.h" />
     <ClInclude Include="Engine\Graphics\CBLight.h" />
+    <ClInclude Include="Engine\Graphics\CBMaterial.h" />
     <ClInclude Include="Engine\Graphics\CBPerObject.h" />
     <ClInclude Include="Engine\Graphics\CBShadow.h" />
     <ClInclude Include="Engine\Graphics\ConstantBuffer.h" />
     <ClInclude Include="Engine\Graphics\DeviceResources.h" />
     <ClInclude Include="Engine\Graphics\Light.h" />
+    <ClInclude Include="Engine\Graphics\Material.h" />
     <ClInclude Include="Engine\Graphics\Mesh.h" />
     <ClInclude Include="Engine\Graphics\ModelLoader.h" />
     <ClInclude Include="Engine\Graphics\Renderer.h" />
@@ -214,6 +216,7 @@
     <ClCompile Include="Engine\External\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Engine\Graphics\ConstantBuffer.cpp" />
     <ClCompile Include="Engine\Graphics\DeviceResources.cpp" />
+    <ClCompile Include="Engine\Graphics\Material.cpp" />
     <ClCompile Include="Engine\Graphics\Mesh.cpp" />
     <ClCompile Include="Engine\Graphics\ModelLoader.cpp" />
     <ClCompile Include="Engine\Graphics\Renderer.cpp" />

@@ -11,8 +11,10 @@ namespace Engine::Editor
         Engine::Scene::Scene* ActiveScene = nullptr;
         Engine::Scene::SceneObject* SelectedObject = nullptr;
         bool ShowEditor = true;
-        
-        // Gizmo state
+       
         GizmoMode CurrentGizmoMode = GizmoMode::Translate;
+        
+        // Scale mode: true = uniform (all axes), false = per-axis
+        bool UniformScale = true;
     };
 }

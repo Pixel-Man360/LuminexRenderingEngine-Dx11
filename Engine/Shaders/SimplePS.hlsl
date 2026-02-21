@@ -2,6 +2,7 @@
 #define LIGHT_POINT 1
 #define MAX_LIGHTS 8
 #define NUM_CASCADES 4
+#define PI 3.14159265359
 
 static const float SHADOW_MAP_SIZE = 2048.0f;
 
@@ -30,8 +31,33 @@ cbuffer CBShadow : register(b2)
     float4 CascadeSplits; // view-space split depths
 };
 
+cbuffer CBMaterial : register(b3)
+{
+    float4 MaterialAlbedo;
+    float MaterialMetallic;
+    float MaterialRoughness;
+    float MaterialAO;
+    float MaterialPadding1;
+    
+    float2 MaterialTiling;
+    float2 MaterialOffset;
+    
+    uint UseAlbedoMap;
+    uint UseNormalMap;
+    uint UseMetallicMap;
+    uint UseRoughnessMap;
+    
+    uint UseAOMap;
+    uint3 MaterialPadding2;
+};
+
 Texture2D DiffuseTexture : register(t0);
 Texture2DArray ShadowMapArray : register(t1);
+Texture2D AlbedoMap : register(t2);
+Texture2D NormalMap : register(t3);
+Texture2D MetallicMap : register(t4);
+Texture2D RoughnessMap : register(t5);
+Texture2D AOMap : register(t6);
 
 SamplerState TextureSampler : register(s0);
 SamplerComparisonState ShadowSampler : register(s1);
@@ -63,11 +89,8 @@ int SelectCascade(float viewDepth)
 // ----------------------------------------------------
 // CASCADED SHADOW
 // ----------------------------------------------------
-float CalculateCascadedShadow(
-    float3 posWS,
-    float viewDepth,
-    float3 normalWS,
-    float3 lightDir)
+float CalculateCascadedShadow(float3 posWS, float viewDepth,
+                             float3 normalWS, float3 lightDir)
 {
     int cascadeIndex = SelectCascade(viewDepth);
 
@@ -82,10 +105,11 @@ float CalculateCascadedShadow(
         proj.z < 0 || proj.z > 1)
         return 1.0f;
 
-    float bias = max(0.001f * (1.0f - dot(normalWS, lightDir)), 0.0002f);
+    float bias = max(0.1f * (1.0f - dot(normalWS, lightDir)), 0.0002f);
 
     // Poisson disk samples for high-quality soft shadows
-    static const float2 poissonDisk[16] = {
+    static const float2 poissonDisk[16] = 
+    {
         float2(-0.94201624, -0.39906216),
         float2(0.94558609, -0.76890725),
         float2(-0.094184101, -0.92938870),
@@ -113,7 +137,8 @@ float CalculateCascadedShadow(
     for (int i = 0; i < 16; ++i)
     {
         float2 offset = poissonDisk[i] * softness;
-        shadow += ShadowMapArray.SampleCmpLevelZero(
+        shadow += ShadowMapArray.SampleCmpLevelZero
+        (
             ShadowSampler,
             float3(proj.xy + offset, cascadeIndex),
             proj.z - bias
@@ -124,6 +149,44 @@ float CalculateCascadedShadow(
 }
 
 // ----------------------------------------------------
+// PBR FUNCTIONS
+// ----------------------------------------------------
+
+float DistributionGGX(float3 N, float3 H, float roughness)
+{
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float NdotH = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH * NdotH;
+    
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+    
+    return a2 / max(denom, 0.0001);
+}
+
+float GeometrySchlickGGX(float NdotV, float roughness)
+{
+    float r = roughness + 1.0;
+    float k = (r * r) / 8.0;
+    return NdotV / (NdotV * (1.0 - k) + k);
+}
+
+float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
+{
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx1 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx2 = GeometrySchlickGGX(NdotL, roughness);
+    return ggx1 * ggx2;
+}
+
+float3 FresnelSchlick(float cosTheta, float3 F0)
+{
+    return F0 + (1.0 - F0) * pow(saturate(1.0 - cosTheta), 5.0);
+}
+
+// ----------------------------------------------------
 // PIXEL ENTRY POINT
 // ----------------------------------------------------
 float4 main(PSInput input) : SV_TARGET
@@ -131,13 +194,31 @@ float4 main(PSInput input) : SV_TARGET
     float3 N = normalize(input.normalWS);
     float3 V = normalize(CameraPosition - input.posWS);
 
-    float3 albedo = DiffuseTexture.Sample(TextureSampler, input.uv).rgb;
+    // Sample albedo: texture * color tint
+    // Tiling and offset included  
+    float2 uv = input.uv * MaterialTiling + MaterialOffset;
+    float3 albedo = MaterialAlbedo.rgb;
+    if (UseAlbedoMap)
+    {
+        float3 texColor = AlbedoMap.Sample(TextureSampler, uv).rgb;
+        albedo = texColor * MaterialAlbedo.rgb;
+    }
+
+    float metallic = UseMetallicMap ? MetallicMap.Sample(TextureSampler, uv).r : MaterialMetallic;
+    float roughness = UseRoughnessMap ? RoughnessMap.Sample(TextureSampler, uv).r : MaterialRoughness;
+    float ao = UseAOMap ? AOMap.Sample(TextureSampler, uv).r : MaterialAO;
+
+    // Clamp roughness to avoid divide by zero in GGX
+    roughness = max(roughness, 0.04);
 
     float viewDepth = abs(input.posVS.z);
 
-    // Ambient light so shadows aren't pitch black
-    float3 ambient = albedo * 0.15f;
-    float3 color = ambient;
+    // Calculate F0 (reflectance at normal incidence)
+    // For dielectrics use 0.04, for metals use albedo color
+    float3 F0 = lerp(float3(0.04, 0.04, 0.04), albedo, metallic);
+
+    // Reflectance equation
+    float3 Lo = float3(0.0, 0.0, 0.0);
 
     for (int i = 0; i < LightCount; ++i)
     {
@@ -146,44 +227,73 @@ float4 main(PSInput input) : SV_TARGET
         float3 L;
         float attenuation = 1.0f;
         float shadow = 1.0f;
+        float3 radiance;
 
         if (light.Type == LIGHT_DIRECTIONAL)
         {
             L = normalize(-light.Direction);
-            shadow = CalculateCascadedShadow(
+            shadow = CalculateCascadedShadow
+            (
                 input.posWS,
                 viewDepth,
                 N,
                 L
             );
+            radiance = light.Color * light.Intensity;
         }
         else
         {
             float3 toLight = light.Position - input.posWS;
-            float dist = length(toLight);
-            L = toLight / dist;
+            float distance = length(toLight);
+            L = toLight / distance;
 
-            attenuation = saturate(1.0f - dist / light.Range);
-            attenuation *= attenuation;
+            // Smooth attenuation
+            float rangeAttenuation = saturate(1.0f - (distance / light.Range));
+            attenuation = rangeAttenuation * rangeAttenuation;
+            
+            radiance = light.Color * light.Intensity * attenuation;
         }
 
-        float diff = max(dot(N, L), 0.0f);
-        float3 H = normalize(L + V);
-        float spec = pow(max(dot(N, H), 0.0f), 16.0f);
-
-        color +=
-            albedo *
-            (diff + spec * 0.25f) *
-            light.Color *
-            light.Intensity *
-            attenuation *
-            shadow;
+        float3 H = normalize(V + L);
+        
+        // Cook-Torrance BRDF
+        float NDF = DistributionGGX(N, H, roughness);
+        float G = GeometrySmith(N, V, L, roughness);
+        float3 F = FresnelSchlick(max(dot(H, V), 0.0), F0);
+        
+        // Specular reflection
+        float3 numerator = NDF * G * F;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
+        float3 specular = numerator / denominator;
+        
+        // Energy conservation: diffuse + specular = 1
+        float3 kS = F;
+        float3 kD = (1.0 - kS) * (1.0 - metallic);
+        
+        float NdotL = max(dot(N, L), 0.0);
+        
+        Lo += (kD * albedo / PI + specular) * radiance * NdotL * shadow;
     }
+
+    // Ambient lighting - higher value for better visibility
+    float3 ambient = float3(0.15, 0.15, 0.15) * albedo * ao;
+    float3 color = ambient + Lo;
+
+    // HDR tonemapping (ACES approximation)
+    float3 x = color;
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+    color = saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+    
+    // Gamma correction
+    color = pow(color, 1.0 / 2.2);
 
     // Apply selection highlight
     if (input.selectionColor.w > 0.5f)
     {
-        // Add orange tint to selected objects
         color = lerp(color, input.selectionColor.xyz, 0.3f);
     }
 

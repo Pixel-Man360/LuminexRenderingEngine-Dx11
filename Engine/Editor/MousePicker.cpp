@@ -97,7 +97,7 @@ Engine::Scene::SceneObject* MousePicker::Pick(
         if (objScale.y > maxScale) maxScale = objScale.y;
         if (objScale.z > maxScale) maxScale = objScale.z;
         
-        float radius = 1.5f * maxScale;
+        float radius = 2.5f * maxScale;
         
         float distance;
         if (RaySphereIntersect(rayOrigin, rayDirection, objPos, radius, distance))

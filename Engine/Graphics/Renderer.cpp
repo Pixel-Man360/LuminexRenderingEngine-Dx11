@@ -5,6 +5,8 @@
 #include "CBPerObject.h"
 #include "CBLight.h"
 #include "CBShadow.h"
+#include "CBMaterial.h"
+#include "Material.h"
 #include "../Core/Input.h"
 #include "../Scene/Scene.h"
 #include "../Scene/LightComponent.h"
@@ -116,6 +118,7 @@ bool Renderer::CreateResources()
     m_cbPerObject = new ConstantBuffer();
     m_cbLight = new ConstantBuffer();
     m_cbShadow = new ConstantBuffer();
+    m_cbMaterial = new ConstantBuffer();
 
 
     // -----------------------------
@@ -240,6 +243,9 @@ bool Renderer::CreateResources()
     if (!m_cbShadow->Create(device, sizeof(CBShadow)))
         return false;
 
+    if (!m_cbMaterial->Create(device, sizeof(CBMaterial)))
+        return false;
+
     // -----------------------------
     // Textures (MOVED UP - LOAD BEFORE CREATING OBJECTS)
     // -----------------------------
@@ -271,28 +277,30 @@ bool Renderer::CreateResources()
    
     SceneObject* cube = m_activeScene->CreateObject("Cube");
     cube->SetMesh(m_cube);
-    cube->SetTexture(m_brickTexture);
+	cube->SetMaterial(CreateDefaultMaterial());
     cube->GetTransform().SetPosition({ -4,0,0 });
 
 	SceneObject* sphere = m_activeScene->CreateObject("Sphere");
 	sphere->SetMesh(m_sphere);
-	sphere->SetTexture(m_brickTexture);
+    sphere->SetMaterial(CreateDefaultMaterial());
 	sphere->GetTransform().SetPosition({ 0, 0, 0 });
 
 	SceneObject* cylinder = m_activeScene->CreateObject("Cylinder");
-	cylinder->SetMesh(m_cylinder);
-	cylinder->SetTexture(m_brickTexture);   
+	cylinder->SetMesh(m_cylinder);  
+    cylinder->SetMaterial(CreateDefaultMaterial());
 	cylinder->GetTransform().SetPosition({ 4, 0, 0 });
 
-	SceneObject* Capsule = m_activeScene->CreateObject("Capsule");
-	Capsule->SetMesh(m_capsule);
-	Capsule->SetTexture(m_brickTexture);
-	Capsule->GetTransform().SetPosition({ 8, 0, 0 });
+	SceneObject* capsule = m_activeScene->CreateObject("Capsule");
+	capsule->SetMesh(m_capsule);
+    capsule ->SetMaterial(CreateDefaultMaterial());
+	capsule->GetTransform().SetPosition({ 8, 0, 0 });
 
 
     SceneObject* ground = m_activeScene->CreateObject("Ground Plane");
+	auto mat = CreateDefaultMaterial();
+    mat->SetAlbedoMap(m_groundTexture);
+    ground->SetMaterial(mat);
     ground->SetMesh(m_planeMesh);
-    ground->SetTexture(m_groundTexture);
     ground->GetTransform().SetPosition({ 0.5, -1.6f, 0 });
  
 
@@ -315,7 +323,7 @@ bool Renderer::CreateResources()
 
     CD3D11_RASTERIZER_DESC shadowRast = {};
 	shadowRast.FillMode = D3D11_FILL_SOLID;
-	shadowRast.CullMode = D3D11_CULL_FRONT;
+	shadowRast.CullMode = D3D11_CULL_BACK;
     shadowRast.DepthBias = 500;
 	shadowRast.DepthBiasClamp = 0.0f;
 	shadowRast.SlopeScaledDepthBias = 0.5f;
@@ -887,6 +895,9 @@ void Renderer::MainRenderPass()
     context->VSSetConstantBuffers(2, 1, &shadowCB);
     context->PSSetConstantBuffers(2, 1, &shadowCB);
 
+    ID3D11Buffer* materialCB = m_cbMaterial->Get();
+    context->PSSetConstantBuffers(3, 1, &materialCB);
+
     context->PSSetShaderResources(1, 1, &m_shadowMapSRVArray);
     
     // Bind both samplers together to ensure proper binding
@@ -917,17 +928,68 @@ void Renderer::MainRenderPass()
         XMStoreFloat4x4(&cbObj.View, XMMatrixTranspose(view));
         XMStoreFloat4x4(&cbObj.Projection, XMMatrixTranspose(proj));
         
-        // Selection highlight - orange tint for selected objects
-        bool isSelected = (obj == m_selectedObject);
-        cbObj.SelectionColor = { 1.0f, 0.5f, 0.0f, isSelected ? 1.0f : 0.0f };
+        // Selection highlight - orange tint for selected objects (Turned off for now)
+     /*   bool isSelected = (obj == m_selectedObject);
+        cbObj.SelectionColor = { 0.5f, 0.5f, 0.0f, isSelected ? 1.0f : 0.0f };*/
+        cbObj.SelectionColor = { 0.0f, 0.0f, 0.0f, 0.0f };
 
         m_cbPerObject->Update(context, &cbObj);
 
-        ID3D11ShaderResourceView* texture = obj->GetTexture();
-        if (texture)
+        // Update material constant buffer
+        CBMaterial cbMat = {};
+        Material* mat = obj->GetMaterial();
+        if (mat)
         {
-            context->PSSetShaderResources(0, 1, &texture);
+            const PBRMaterialData& matData = mat->GetData();
+            cbMat.Albedo = matData.Albedo;
+            cbMat.Metallic = matData.Metallic;
+            cbMat.Roughness = matData.Roughness;
+            cbMat.AO = matData.AO;
+			cbMat.Tiling = matData.Tiling;
+			cbMat.Offset = matData.Offset;
+            cbMat.UseAlbedoMap = mat->GetAlbedoMap() ? 1 : 0;
+            cbMat.UseNormalMap = mat->GetNormalMap() ? 1 : 0;
+            cbMat.UseMetallicMap = mat->GetMetallicMap() ? 1 : 0;
+            cbMat.UseRoughnessMap = mat->GetRoughnessMap() ? 1 : 0;
+            cbMat.UseAOMap = mat->GetAOMap() ? 1 : 0;
+
+            // Clear previous texture bindings
+            ID3D11ShaderResourceView* nullSRVs[5] = { nullptr, nullptr, nullptr, nullptr, nullptr };
+            context->PSSetShaderResources(2, 5, nullSRVs);
+
+            // Bind PBR texture maps (slots t2-t6)
+            ID3D11ShaderResourceView* albedoMap = mat->GetAlbedoMap();
+            ID3D11ShaderResourceView* normalMap = mat->GetNormalMap();
+            ID3D11ShaderResourceView* metallicMap = mat->GetMetallicMap();
+            ID3D11ShaderResourceView* roughnessMap = mat->GetRoughnessMap();
+            ID3D11ShaderResourceView* aoMap = mat->GetAOMap();
+
+            if (albedoMap) context->PSSetShaderResources(2, 1, &albedoMap);
+            if (normalMap) context->PSSetShaderResources(3, 1, &normalMap);
+            if (metallicMap) context->PSSetShaderResources(4, 1, &metallicMap);
+            if (roughnessMap) context->PSSetShaderResources(5, 1, &roughnessMap);
+            if (aoMap) context->PSSetShaderResources(6, 1, &aoMap);
         }
+        else
+        {
+            // Default material values (no texture)
+            cbMat.Albedo = { 1.0f, 1.0f, 1.0f, 1.0f };
+            cbMat.Metallic = 0.0f;
+            cbMat.Roughness = 0.5f;
+            cbMat.AO = 1.0f;
+            cbMat.Tiling = { 1.0f, 1.0f };
+            cbMat.Offset = { 0.0f, 0.0f };
+            cbMat.UseAlbedoMap = 0;
+            cbMat.UseNormalMap = 0;
+            cbMat.UseMetallicMap = 0;
+            cbMat.UseRoughnessMap = 0;
+            cbMat.UseAOMap = 0;
+
+            // Clear texture bindings
+            ID3D11ShaderResourceView* nullSRVs[5] = { nullptr, nullptr, nullptr, nullptr, nullptr };
+            context->PSSetShaderResources(2, 5, nullSRVs);
+        }
+        m_cbMaterial->Update(context, &cbMat);
 
         obj->GetMesh()->Draw(context);
     }
@@ -994,6 +1056,17 @@ void Renderer::SetActiveScene(Engine::Scene::Scene* scene)
 void Renderer::SetSelectedObject(Engine::Scene::SceneObject* obj)
 {
     m_selectedObject = obj;
+}
+
+std::shared_ptr<Material> Renderer::CreateDefaultMaterial()
+{
+    auto mat = std::make_shared<Material>();
+    mat->SetAlbedo({ 1.0f, 1.0f, 1.0f, 1.0f });
+    mat->SetMetallic(0.1f);
+    mat->SetRoughness(0.2f);
+    mat->SetAO(0.2f);
+    mat->SetAlbedoMap(m_brickTexture);
+    return mat;
 }
 
 DirectX::XMMATRIX Renderer::GetProjectionMatrix() const

@@ -4,6 +4,7 @@
 #include <memory>
 #include <d3d11.h>
 
+#include "../Graphics/Material.h"
 #include "Transform.h"
 #include "LightComponent.h"
 
@@ -31,6 +32,9 @@ namespace Engine::Scene
 
         DirectX::XMMATRIX GetWorldMatrix() const;
 
+        void SetMaterial(std::shared_ptr<Engine::Graphics::Material> material);
+        Engine::Graphics::Material* GetMaterial() const;
+
         void SetMesh(Engine::Graphics::Mesh* mesh);
         Engine::Graphics::Mesh* GetMesh() const;
 
@@ -53,6 +57,8 @@ namespace Engine::Scene
 
         SceneObject* m_parent = nullptr;
         std::vector<SceneObject*> m_children;
+
+        std::shared_ptr<Engine::Graphics::Material> m_material;
 
         Engine::Graphics::Mesh* m_mesh = nullptr;
         ID3D11ShaderResourceView* m_texture = nullptr;

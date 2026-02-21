@@ -120,6 +120,16 @@ ID3D11ShaderResourceView* SceneObject::GetTexture() const
     return m_texture;
 }
 
+void SceneObject::SetMaterial(std::shared_ptr<Engine::Graphics::Material> material)
+{
+    m_material = material;
+}
+
+Engine::Graphics::Material* SceneObject::GetMaterial() const
+{
+    return m_material.get();
+}
+
 bool SceneObject::HasRenderable() const
 {
     return m_mesh != nullptr;

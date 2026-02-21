@@ -30,14 +30,16 @@ namespace Engine::Editor
                         const DirectX::XMMATRIX& view,
                         const DirectX::XMMATRIX& projection,
                         const DirectX::XMFLOAT3& cameraPos,
-                        int screenWidth, int screenHeight);
+                        int screenWidth, int screenHeight,
+                        bool uniformScale = true);
         
         void OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY,
                         Engine::Scene::SceneObject* selectedObject,
                         const DirectX::XMMATRIX& view,
                         const DirectX::XMMATRIX& projection,
                         const DirectX::XMFLOAT3& cameraPos,
-                        int screenWidth, int screenHeight);
+                        int screenWidth, int screenHeight,
+                        bool uniformScale = true);
         
         // Returns true if a transform was changed (for undo recording)
         bool OnMouseUp(Engine::Scene::SceneObject* selectedObject);

@@ -386,7 +386,8 @@ bool Gizmo::OnMouseDown(int mouseX, int mouseY,
                         const XMMATRIX& view,
                         const XMMATRIX& projection,
                         const XMFLOAT3& cameraPos,
-                        int screenWidth, int screenHeight)
+                        int screenWidth, int screenHeight,
+                        bool uniformScale)
 {
     if (!selectedObject || m_mode == GizmoMode::None) return false;
     
@@ -429,7 +430,8 @@ void Gizmo::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY,
                         const XMMATRIX& view,
                         const XMMATRIX& projection,
                         const XMFLOAT3& cameraPos,
-                        int screenWidth, int screenHeight)
+                        int screenWidth, int screenHeight,
+                        bool uniformScale)
 {
     if (!m_isDragging || !selectedObject) return;
     
@@ -496,20 +498,36 @@ void Gizmo::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY,
     {
         float scaleSensitivity = 0.01f;
         float delta = dx * scaleSensitivity;
-        switch (m_activeAxis)
+        
+        if (uniformScale)
         {
-        case GizmoAxis::X:
-            scale.x += delta;
+            // Uniform scaling - apply same delta to all axes
+            float uniformDelta = (dx - dy) * scaleSensitivity;
+            scale.x += uniformDelta;
+            scale.y += uniformDelta;
+            scale.z += uniformDelta;
             if (scale.x < 0.01f) scale.x = 0.01f;
-            break;
-        case GizmoAxis::Y:
-            scale.y -= dy * scaleSensitivity;
             if (scale.y < 0.01f) scale.y = 0.01f;
-            break;
-        case GizmoAxis::Z:
-            scale.z += delta;
             if (scale.z < 0.01f) scale.z = 0.01f;
-            break;
+        }
+        else
+        {
+            // Per-axis scaling
+            switch (m_activeAxis)
+            {
+            case GizmoAxis::X:
+                scale.x += delta;
+                if (scale.x < 0.01f) scale.x = 0.01f;
+                break;
+            case GizmoAxis::Y:
+                scale.y -= dy * scaleSensitivity;
+                if (scale.y < 0.01f) scale.y = 0.01f;
+                break;
+            case GizmoAxis::Z:
+                scale.z += delta;
+                if (scale.z < 0.01f) scale.z = 0.01f;
+                break;
+            }
         }
         selectedObject->GetTransform().SetScale(scale);
     }

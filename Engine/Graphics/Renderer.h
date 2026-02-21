@@ -10,6 +10,8 @@
 
 #include "Light.h"
 #include "CBLight.h"
+#include "CBMaterial.h"
+#include "Material.h"
 #include "ConstantBuffer.h"
 
 
@@ -45,7 +47,7 @@ namespace Engine::Graphics
         Mesh* GetCapsuleMesh() const { return m_capsule; }
         Mesh* GetPlaneMesh() const { return m_planeMesh; }
         
-        // Get available textures
+        // Get available textures for material system
         ID3D11ShaderResourceView* GetBrickTexture() const { return m_brickTexture; }
         ID3D11ShaderResourceView* GetGroundTexture() const { return m_groundTexture; }
         
@@ -58,6 +60,9 @@ namespace Engine::Graphics
                 { "Ground", m_groundTexture }
             };
         }
+
+        // Create a default material with brick texture
+        std::shared_ptr<Material> CreateDefaultMaterial();
         
         // Camera access for gizmo/picking
         DirectX::XMMATRIX GetViewMatrix() const { return m_camera.GetViewMatrix(); }
@@ -100,6 +105,7 @@ namespace Engine::Graphics
         ConstantBuffer* m_cbPerObject = nullptr;
         ConstantBuffer* m_cbLight = nullptr;
 		ConstantBuffer* m_cbShadow = nullptr;
+        ConstantBuffer* m_cbMaterial = nullptr;
         std::vector<Light> m_lights;
 
 
@@ -118,10 +124,6 @@ namespace Engine::Graphics
         ID3D11DepthStencilView* m_shadowMapDSVArray = nullptr;
         ID3D11ShaderResourceView* m_shadowMapSRVArray = nullptr;
 
-		/*ID3D11Texture2D* m_shadowMapTexture = nullptr;
-		ID3D11DepthStencilView* m_shadowMapDSV = nullptr;
-		ID3D11ShaderResourceView* m_shadowMapSRV = nullptr;*/
-
 		ID3D11SamplerState* m_shadowMapSampler = nullptr;
 
         // Shadow matrices
@@ -131,7 +133,7 @@ namespace Engine::Graphics
         float    m_cascadeSplits[NUM_CASCADES];
         float m_cascadeLambda = 0.6f;
         float m_nearZ = 0.1f;
-        float m_farZ = 100.0f;
+        float m_farZ = 1000.0f;
 
         DirectX::XMMATRIX m_lightView;
         DirectX::XMMATRIX m_lightProj;

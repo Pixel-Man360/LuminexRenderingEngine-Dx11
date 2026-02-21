@@ -5,6 +5,7 @@
 #include "../Scene/Transform.h"
 #include "../Scene/LightComponent.h"
 #include "../Graphics/Renderer.h"
+#include "../Graphics/Material.h"
 #include <DirectXMath.h>
 
 using namespace DirectX;
@@ -56,10 +57,12 @@ void InspectorPanel::Draw(EditorContext& context)
 
     if (s_isDraggingPos && ImGui::IsItemDeactivatedAfterEdit())
     {
-        auto cmd = std::make_unique<TransformChangeCommand>(
+        auto cmd = std::make_unique<TransformChangeCommand>
+            (
             context.SelectedObject,
             TransformChangeCommand::ChangeType::Position,
-            s_dragStartPos, pos);
+            s_dragStartPos, pos
+            );
         UndoManager::Get().AddCommand(std::move(cmd));
         s_isDraggingPos = false;
     }
@@ -87,16 +90,65 @@ void InspectorPanel::Draw(EditorContext& context)
         s_isDraggingRot = false;
     }
 
-    XMFLOAT3 scale = transform.GetScale();
+    // Scale section with uniform toggle
+    ImGui::Spacing();
     
-    if (ImGui::DragFloat3("Scale", &scale.x, 0.1f, 0.01f, 100.0f))
+    // Toggle button for uniform/per-axis scale (chain link icon style)
+    ImGui::PushID("ScaleLinkToggle");
+    if (context.UniformScale)
     {
-        if (!s_isDraggingScale)
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.6f, 0.2f, 1.0f));
+        if (ImGui::SmallButton("[=]"))
+            context.UniformScale = false;
+        ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Uniform Scale (click to unlink axes)");
+    }
+    else
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+        if (ImGui::SmallButton("[ ]"))
+            context.UniformScale = true;
+        ImGui::PopStyleColor();
+        if (ImGui::IsItemHovered())
+            ImGui::SetTooltip("Per-Axis Scale (click to link axes)");
+    }
+    ImGui::PopID();
+    ImGui::SameLine();
+    
+    XMFLOAT3 scale = transform.GetScale();
+    XMFLOAT3 prevScale = scale;
+
+    if (context.UniformScale)
+    {
+        // Uniform scale - single drag float that affects all axes
+        float uniformValue = scale.x;
+        if (ImGui::DragFloat("Scale", &uniformValue, 0.1f, 0.01f, 100.0f))
         {
-            s_dragStartScale = transform.GetScale();
-            s_isDraggingScale = true;
+            if (!s_isDraggingScale)
+            {
+                s_dragStartScale = transform.GetScale();
+                s_isDraggingScale = true;
+            }
+            // Apply uniform scale to all axes
+            scale.x = uniformValue;
+            scale.y = uniformValue;
+            scale.z = uniformValue;
+            transform.SetScale(scale);
         }
-        transform.SetScale(scale);
+    }
+    else
+    {
+        // Per-axis scale
+        if (ImGui::DragFloat3("Scale", &scale.x, 0.1f, 0.01f, 100.0f))
+        {
+            if (!s_isDraggingScale)
+            {
+                s_dragStartScale = transform.GetScale();
+                s_isDraggingScale = true;
+            }
+            transform.SetScale(scale);
+        }
     }
     
     if (s_isDraggingScale && ImGui::IsItemDeactivatedAfterEdit())
@@ -109,47 +161,71 @@ void InspectorPanel::Draw(EditorContext& context)
         s_isDraggingScale = false;
     }
 
-    if (context.SelectedObject->GetMesh() || m_renderer)
+    // Mesh Renderer Section
+    ImGui::Spacing();
+    ImGui::Text("Mesh Renderer");
+    ImGui::Separator();
+   
+    if (m_renderer)
     {
-        ImGui::Spacing();
-        ImGui::Text("Mesh Renderer");
-        ImGui::Separator();
-       
-        if (m_renderer)
+        // Mesh selection
+        const char* meshNames[] = { "None", "Cube", "Sphere", "Cylinder", "Capsule", "Plane" };
+        Engine::Graphics::Mesh* meshes[] = {
+            nullptr,
+            m_renderer->GetCubeMesh(),
+            m_renderer->GetSphereMesh(),
+            m_renderer->GetCylinderMesh(),
+            m_renderer->GetCapsuleMesh(),
+            m_renderer->GetPlaneMesh()
+        };
+        
+        int currentMesh = 0;
+        Engine::Graphics::Mesh* objMesh = context.SelectedObject->GetMesh();
+        for (int i = 0; i < 6; ++i)
         {
-            const char* meshNames[] = { "None", "Cube", "Sphere", "Cylinder", "Capsule", "Plane" };
-            Engine::Graphics::Mesh* meshes[] = {
-                nullptr,
-                m_renderer->GetCubeMesh(),
-                m_renderer->GetSphereMesh(),
-                m_renderer->GetCylinderMesh(),
-                m_renderer->GetCapsuleMesh(),
-                m_renderer->GetPlaneMesh()
-            };
-            
-            int currentMesh = 0;
-            Engine::Graphics::Mesh* objMesh = context.SelectedObject->GetMesh();
-            for (int i = 0; i < 6; ++i)
+            if (meshes[i] == objMesh)
             {
-                if (meshes[i] == objMesh)
+                currentMesh = i;
+                break;
+            }
+        }
+        
+        if (ImGui::Combo("Mesh", &currentMesh, meshNames, IM_ARRAYSIZE(meshNames)))
+        {
+            context.SelectedObject->SetMesh(meshes[currentMesh]);
+            // Auto-create default material when mesh is assigned
+            if (meshes[currentMesh] && !context.SelectedObject->GetMaterial())
+            {
+                context.SelectedObject->SetMaterial(m_renderer->CreateDefaultMaterial());
+            }
+        }
+
+        // Material Section (inside Mesh Renderer)
+        Engine::Graphics::Material* mat = context.SelectedObject->GetMaterial();
+        
+        if (!mat)
+        {
+            if (context.SelectedObject->GetMesh())
+            {
+                if (ImGui::Button("Add Material"))
                 {
-                    currentMesh = i;
-                    break;
+                    context.SelectedObject->SetMaterial(m_renderer->CreateDefaultMaterial());
                 }
             }
-            
-            if (ImGui::Combo("Mesh", &currentMesh, meshNames, IM_ARRAYSIZE(meshNames)))
-            {
-                context.SelectedObject->SetMesh(meshes[currentMesh]);
-            }
-            
+        }
+        else
+        {
+            ImGui::Spacing();
+            ImGui::Text("Material (PBR)");
+            ImGui::Indent();
+
+            // Albedo Texture selection
             auto textures = m_renderer->GetAvailableTextures();
-            
             int currentTex = 0;
-            ID3D11ShaderResourceView* objTex = context.SelectedObject->GetTexture();
+            ID3D11ShaderResourceView* matAlbedoTex = mat->GetAlbedoMap();
             for (size_t i = 0; i < textures.size(); ++i)
             {
-                if (textures[i].srv == objTex)
+                if (textures[i].srv == matAlbedoTex)
                 {
                     currentTex = static_cast<int>(i);
                     break;
@@ -160,15 +236,66 @@ void InspectorPanel::Draw(EditorContext& context)
             for (auto& t : textures)
                 texNames.push_back(t.name);
             
-            if (ImGui::Combo("Texture", &currentTex, texNames.data(), static_cast<int>(texNames.size())))
+            if (ImGui::Combo("Albedo Texture", &currentTex, texNames.data(), static_cast<int>(texNames.size())))
             {
-                context.SelectedObject->SetTexture(textures[currentTex].srv);
+                mat->SetAlbedoMap(textures[currentTex].srv);
+            }
+
+            // Albedo color (tint)
+            DirectX::XMFLOAT4 albedo = mat->GetData().Albedo;
+            float albedoColor[3] = { albedo.x, albedo.y, albedo.z };
+            if (ImGui::ColorEdit3("Albedo Tint", albedoColor))
+            {
+                mat->SetAlbedo({ albedoColor[0], albedoColor[1], albedoColor[2], 1.0f });
+            }
+
+            // Tiling
+            DirectX::XMFLOAT2 tiling = mat->GetTiling();
+            float tilingVals[2] = { tiling.x, tiling.y };
+            if (ImGui::DragFloat2("Tiling", tilingVals, 0.05f, 0.01f, 64.0f))
+            {
+                mat->SetTiling({ tilingVals[0], tilingVals[1] });
+            }
+
+            // Offset
+            DirectX::XMFLOAT2 offset = mat->GetOffset();
+            float offsetVals[2] = { offset.x, offset.y };
+            if (ImGui::DragFloat2("Offset", offsetVals, 0.01f, -10.0f, 10.0f))
+            {
+                mat->SetOffset({ offsetVals[0], offsetVals[1] });
+            }
+
+            // Metallic
+            float metallic = mat->GetData().Metallic;
+            if (ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f))
+            {
+                mat->SetMetallic(metallic);
+            }
+
+            // Roughness
+            float roughness = mat->GetData().Roughness;
+            if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f))
+            {
+                mat->SetRoughness(roughness);
+            }
+
+            // Ambient Occlusion
+            float ao = mat->GetData().AO;
+            if (ImGui::SliderFloat("AO", &ao, 0.0f, 1.0f))
+            {
+                mat->SetAO(ao);
+            }
+
+            ImGui::Unindent();
+            ImGui::Spacing();
+            if (ImGui::Button("Remove Material"))
+            {
+                context.SelectedObject->SetMaterial(nullptr);
             }
         }
     }
 
     LightComponent* light = context.SelectedObject->GetLightComponent();
-    if (light)
     if (light)
     {
         ImGui::Spacing();

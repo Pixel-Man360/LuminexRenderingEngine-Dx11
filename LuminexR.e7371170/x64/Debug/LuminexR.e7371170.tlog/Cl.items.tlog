@@ -20,6 +20,7 @@ K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImG
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\External\ImGui\imgui_widgets.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\imgui_widgets.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\ConstantBuffer.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\ConstantBuffer.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\DeviceResources.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\DeviceResources.obj
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\Material.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Material.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\Mesh.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Mesh.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\ModelLoader.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\ModelLoader.obj
 K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Graphics\Renderer.cpp;K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\LuminexR.e7371170\x64\Debug\Renderer.obj

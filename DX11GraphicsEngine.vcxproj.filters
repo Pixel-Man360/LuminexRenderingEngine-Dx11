@@ -195,6 +195,12 @@
     <ClInclude Include="Engine\Graphics\ModelLoader.h">
       <Filter>Source Files\Engine\Graphics</Filter>
     </ClInclude>
+    <ClInclude Include="Engine\Graphics\Material.h">
+      <Filter>Source Files\Engine\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Graphics\CBMaterial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11GraphicsEngine.rc">
@@ -305,6 +311,9 @@
     </ClCompile>
     <ClCompile Include="Engine\Editor\Gizmo.cpp">
       <Filter>Source Files\Engine\Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\Graphics\Material.cpp">
+      <Filter>Source Files\Engine\Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

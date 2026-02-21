@@ -1,1 +1,17 @@
-﻿  DX11GraphicsEngine.vcxproj -> K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\LuminexRenderingEngine-Dx11.exe
+﻿  Editor.cpp
+  EditorContext.cpp
+  EditorPanel.cpp
+  Gizmo.cpp
+  InspectorPanel.cpp
+  MenuBarPanel.cpp
+  MousePicker.cpp
+  SceneHierarchyPanel.cpp
+  StatsPanel.cpp
+  ViewportPanel.cpp
+  Material.cpp
+  Renderer.cpp
+  Scene.cpp
+  SceneObject.cpp
+  main.cpp
+  Generating Code...
+  DX11GraphicsEngine.vcxproj -> K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\LuminexRenderingEngine-Dx11.exe

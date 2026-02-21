@@ -1,0 +1,22 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "LuminexR.e7371170\\x64\\Debug\\microsoft\\STL\\std.obj",
+            "outputs": [
+                "LuminexR.e7371170\\x64\\Debug\\microsoft\\STL\\std.ixx.ifc.dt.module.json",
+                "LuminexR.e7371170\\x64\\Debug\\microsoft\\STL\\std.ixx.ifc.dt.d.json",
+                "LuminexR.e7371170\\x64\\Debug\\microsoft\\STL\\std.ifc"
+            ],
+            "provides": [
+                {
+                    "logical-name": "std",
+                    "source-path": "f:\\visual studio\\vc\\tools\\msvc\\14.50.35717\\modules\\std.ixx",
+                    "is-interface": true
+                }
+            ],
+            "requires": []
+        }
+    ]
+}

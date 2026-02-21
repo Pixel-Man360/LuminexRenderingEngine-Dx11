@@ -310,7 +310,8 @@ void Editor::HandleInput(int mouseX, int mouseY, bool leftButtonDown, bool leftB
         {
             bool gizmoHit = m_gizmo.OnMouseDown(mouseX, mouseY, m_context.SelectedObject,
                                                  view, projection, cameraPos,
-                                                 screenWidth, screenHeight);
+                                                 screenWidth, screenHeight,
+                                                 m_context.UniformScale);
             if (!gizmoHit)
             {
                 // Try object picking

@@ -21,7 +21,6 @@ bool ModelLoader::LoadFromFile(const std::string& filepath, ID3D11Device* device
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
-        // Show error message for debugging
         std::string errorMsg = "Failed to load model: " + filepath + "\n\nAssimp Error: " + importer.GetErrorString();
         MessageBoxA(nullptr, errorMsg.c_str(), "Model Import Error", MB_OK | MB_ICONERROR);
         return false;

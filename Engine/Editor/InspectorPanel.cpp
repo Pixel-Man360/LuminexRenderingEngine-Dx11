@@ -7,6 +7,11 @@
 #include "../Graphics/Renderer.h"
 #include "../Graphics/Material.h"
 #include <DirectXMath.h>
+#include <windows.h>
+#include <commdlg.h>
+#include <string>
+#include <vector>
+#include <filesystem>
 
 using namespace DirectX;
 using namespace Engine::Editor;
@@ -219,7 +224,7 @@ void InspectorPanel::Draw(EditorContext& context)
             ImGui::Text("Material (PBR)");
             ImGui::Indent();
 
-            // Albedo Texture selection
+            // Albedo Texture selection (adds an "Import..." option)
             auto textures = m_renderer->GetAvailableTextures();
             int currentTex = 0;
             ID3D11ShaderResourceView* matAlbedoTex = mat->GetAlbedoMap();
@@ -231,14 +236,44 @@ void InspectorPanel::Draw(EditorContext& context)
                     break;
                 }
             }
-            
-            std::vector<const char*> texNames;
+
+            // Build names and add Import option at the end
+            std::vector<std::string> texNamesStr;
             for (auto& t : textures)
-                texNames.push_back(t.name);
-            
+                texNamesStr.push_back(t.name);
+            texNamesStr.push_back("Import...");
+
+            std::vector<const char*> texNames;
+            for (auto& s : texNamesStr)
+                texNames.push_back(s.c_str());
+
             if (ImGui::Combo("Albedo Texture", &currentTex, texNames.data(), static_cast<int>(texNames.size())))
             {
-                mat->SetAlbedoMap(textures[currentTex].srv);
+                if (currentTex < static_cast<int>(textures.size()))
+                {
+                    mat->SetAlbedoMap(textures[currentTex].srv);
+                }
+                else
+                {
+                    // Import selected
+                    // Open native file dialog
+                    wchar_t filename[MAX_PATH] = {0};
+                    OPENFILENAMEW ofn = {};
+                    ofn.lStructSize = sizeof(ofn);
+                    ofn.lpstrFile = filename;
+                    ofn.nMaxFile = MAX_PATH;
+                    ofn.lpstrFilter = L"Image Files\0*.png;*.jpg;*.jpeg;*.bmp;*.tga\0All Files\0*.*\0";
+                    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+                    if (GetOpenFileNameW(&ofn))
+                    {
+                        std::wstring path = filename;
+                        ID3D11ShaderResourceView* newSrv = m_renderer->ImportTextureFromFile(path);
+                        if (newSrv)
+                        {
+                            mat->SetAlbedoMap(newSrv);
+                        }
+                    }
+                }
             }
 
             // Albedo color (tint)

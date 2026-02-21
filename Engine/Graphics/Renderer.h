@@ -52,16 +52,13 @@ namespace Engine::Graphics
         ID3D11ShaderResourceView* GetGroundTexture() const { return m_groundTexture; }
         
         // Get texture count and names for UI
-        struct TextureInfo { const char* name; ID3D11ShaderResourceView* srv; };
-        std::vector<TextureInfo> GetAvailableTextures() const {
-            return {
-                { "None", nullptr },
-                { "Brick", m_brickTexture },
-                { "Ground", m_groundTexture }
-            };
-        }
+        struct TextureInfo { std::string name; ID3D11ShaderResourceView* srv; };
+        std::vector<TextureInfo> GetAvailableTextures() const { return m_textures; }
 
-        // Create a default material with brick texture
+        // Import texture from file and add to available textures. Returns SRV or nullptr on failure.
+        ID3D11ShaderResourceView* ImportTextureFromFile(const std::wstring& filepath);
+
+
         std::shared_ptr<Material> CreateDefaultMaterial();
         
         // Camera access for gizmo/picking
@@ -119,6 +116,9 @@ namespace Engine::Graphics
         ID3D11ShaderResourceView* m_brickTexture = nullptr;
         ID3D11ShaderResourceView* m_groundTexture = nullptr;
         ID3D11SamplerState* m_samplerState = nullptr;
+
+        // Dynamic list of available textures (includes defaults and imported textures)
+        std::vector<TextureInfo> m_textures;
 
         ID3D11Texture2D* m_shadowMapArray = nullptr;
         ID3D11DepthStencilView* m_shadowMapDSVArray = nullptr;

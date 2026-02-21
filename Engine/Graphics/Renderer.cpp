@@ -13,6 +13,7 @@
 
 #include <DirectXMath.h>
 #include <WICTextureLoader.h>
+#include <filesystem>
 
 using namespace Engine::Graphics;
 using namespace Engine::Core;
@@ -270,6 +271,12 @@ bool Renderer::CreateResources()
         MessageBox(nullptr, L"Failed to load ground texture", L"Error", MB_OK);
         return false;
     }
+
+    // Populate texture list with defaults
+    m_textures.clear();
+    m_textures.push_back({ "None", nullptr });
+    m_textures.push_back({ "Brick", m_brickTexture });
+    m_textures.push_back({ "Ground", m_groundTexture });
 
     // -----------------------------
     // Scene Objects 
@@ -1096,6 +1103,14 @@ void Renderer::Release()
     if (m_depthStencilState) m_depthStencilState->Release();
     if (m_brickTexture)   m_brickTexture->Release();     
     if (m_groundTexture)  m_groundTexture->Release();   
+    // Release any imported textures (stored in m_textures)
+    for (auto &t : m_textures)
+    {
+        if (t.srv && t.srv != m_brickTexture && t.srv != m_groundTexture)
+        {
+            t.srv->Release();
+        }
+    }
     if (m_samplerState)     m_samplerState->Release();
     for (uint32_t i = 0; i < NUM_CASCADES; ++i)
     {
@@ -1137,4 +1152,25 @@ Mesh* Renderer::ImportMesh(const std::string& filepath)
 ID3D11Device* Renderer::GetDevice() const
 {
     return m_deviceResources ? m_deviceResources->GetDevice() : nullptr;
+}
+
+ID3D11ShaderResourceView* Engine::Graphics::Renderer::ImportTextureFromFile(const std::wstring& filepath)
+{
+    if (!m_deviceResources) return nullptr;
+    ID3D11Device* device = m_deviceResources->GetDevice();
+    ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
+    if (!device || !context) return nullptr;
+
+    ID3D11ShaderResourceView* srv = nullptr;
+    if (FAILED(CreateWICTextureFromFile(device, context, filepath.c_str(), nullptr, &srv)))
+    {
+        return nullptr;
+    }
+
+    // Extract filename for display name
+    std::filesystem::path p(filepath);
+    std::string name = p.filename().string();
+
+    m_textures.push_back({ name, srv });
+    return srv;
 }

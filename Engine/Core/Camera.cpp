@@ -5,7 +5,7 @@ using namespace Engine::Core;
 
 Camera::Camera()
 {
-    m_position = { 1.5, 1.5, -5 };
+    m_position = { 3, 5, -25 };
     m_pitch = -0.3f;
     m_yaw = 0.0f;
     m_moveSpeed = 5.0f;

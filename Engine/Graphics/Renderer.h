@@ -4,7 +4,11 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <atomic>
+#include <thread>
+#include <mutex>
 #include "DeviceResources.h"
+#include "Mesh.h"
 #include "../Core/Camera.h"
 #include "../Scene/Scene.h"
 
@@ -80,6 +84,13 @@ namespace Engine::Graphics
         // Import mesh from file (returns nullptr on failure)
         Mesh* ImportMesh(const std::string& filepath);
         ID3D11Device* GetDevice() const;
+
+        void ImportMeshAsync(const std::string& filepath);
+        bool IsImportInProgress() const { return m_importInProgress.load(); }
+        float GetImportProgress() const { return m_importProgress.load(); }
+        bool HasImportResult() const { return m_hasImportResult.load(); }
+
+        Mesh* FinalizePendingImport();
 
     private:
         void GatherLightsFromScene();
@@ -157,6 +168,16 @@ namespace Engine::Graphics
         Engine::Core::Camera m_camera;
 
         DirectX::XMFLOAT4 m_clearColor{ 0.1f, 0.5f, 0.6f, 1.0f };
+
+        std::atomic<bool> m_importInProgress{ false };
+        std::atomic<float> m_importProgress{ 0.0f };
+        std::thread m_importThread;
+        std::mutex m_importMutex;
+        std::vector<Vertex> m_importVertices;
+        std::vector<uint32_t> m_importIndices;
+        std::atomic<bool> m_hasImportResult{ false };
+        bool m_importSuccess = false;
+        std::string m_importPath;
 
         bool CreateResources();
         void ShadowPass();

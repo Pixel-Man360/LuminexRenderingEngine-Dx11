@@ -1,4 +1,9 @@
+#include <atomic>
+#include <thread>
+#include <mutex>
+#include <utility>
 #include "Renderer.h"
+#include "ModelLoader.h"
 #include "Shader.h"
 #include "Mesh.h"
 #include "ConstantBuffer.h"
@@ -48,34 +53,26 @@ void GetFrustrumConrersWS(const XMMATRIX& view, const XMMATRIX& proj, float near
 
     for (int i = 0; i < 4; ++i)
     {
-        // Near plane in NDC (z = 0 for LH)
         XMVECTOR cornerNearNDC = XMVectorSet(ndcCorners[i].x, ndcCorners[i].y, 0.0f, 1.0f);
-        // Far plane in NDC (z = 1 for LH)
         XMVECTOR cornerFarNDC = XMVectorSet(ndcCorners[i].x, ndcCorners[i].y, 1.0f, 1.0f);
 
-        // Transform to view space
         XMVECTOR cornerNearVS = XMVector4Transform(cornerNearNDC, invProj);
         XMVECTOR cornerFarVS = XMVector4Transform(cornerFarNDC, invProj);
 
         cornerNearVS /= XMVectorGetW(cornerNearVS);
         cornerFarVS /= XMVectorGetW(cornerFarVS);
 
-        // Ray direction in view space (from near to far)
         XMVECTOR dir = cornerFarVS - cornerNearVS;
 
-        // Get the view-space z values at the projection's near and far planes
         float vsNearZ = XMVectorGetZ(cornerNearVS);
         float vsFarZ = XMVectorGetZ(cornerFarVS);
 
-        // Calculate interpolation factors for the desired cascade depths
         float tNear = (nearZ - vsNearZ) / (vsFarZ - vsNearZ);
         float tFar = (farZ - vsNearZ) / (vsFarZ - vsNearZ);
 
-        // Interpolate to get view-space positions at desired depths
         XMVECTOR pointNearVS = cornerNearVS + dir * tNear;
         XMVECTOR pointFarVS = cornerNearVS + dir * tFar;
 
-        // Transform to world space
         XMVECTOR cornerNearWS = XMVector4Transform(pointNearVS, invView);
         XMVECTOR cornerFarWS = XMVector4Transform(pointFarVS, invView);
 
@@ -121,10 +118,6 @@ bool Renderer::CreateResources()
     m_cbShadow = new ConstantBuffer();
     m_cbMaterial = new ConstantBuffer();
 
-
-    // -----------------------------
-    // Input Layout
-    // -----------------------------
     D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -231,10 +224,6 @@ bool Renderer::CreateResources()
         return false;
     }
 
-
-    // -----------------------------
-    // Constant Buffers
-    // -----------------------------
     if (!m_cbPerObject->Create(device, sizeof(CBPerObject)))
         return false;
 
@@ -247,9 +236,6 @@ bool Renderer::CreateResources()
     if (!m_cbMaterial->Create(device, sizeof(CBMaterial)))
         return false;
 
-    // -----------------------------
-    // Textures (MOVED UP - LOAD BEFORE CREATING OBJECTS)
-    // -----------------------------
     if (FAILED(CreateWICTextureFromFile(
         device,
         context,
@@ -278,10 +264,6 @@ bool Renderer::CreateResources()
     m_textures.push_back({ "Brick", m_brickTexture });
     m_textures.push_back({ "Ground", m_groundTexture });
 
-    // -----------------------------
-    // Scene Objects 
-    // -----------------------------
-   
     SceneObject* cube = m_activeScene->CreateObject("Cube");
     cube->SetMesh(m_cube);
 	cube->SetMaterial(CreateDefaultMaterial());
@@ -309,11 +291,7 @@ bool Renderer::CreateResources()
     ground->SetMaterial(mat);
     ground->SetMesh(m_planeMesh);
     ground->GetTransform().SetPosition({ 0.5, -1.6f, 0 });
- 
 
-    // -----------------------------
-    // Sampler
-    // -----------------------------
     D3D11_SAMPLER_DESC samp = {};
     samp.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     samp.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -321,14 +299,10 @@ bool Renderer::CreateResources()
     samp.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
     samp.MaxLOD = D3D11_FLOAT32_MAX;
 
-    if (FAILED(device->CreateSamplerState(&samp, &m_samplerState)))
-        return false;
+	if (FAILED(device->CreateSamplerState(&samp, &m_samplerState)))
+		return false;
 
-    // -----------------------------
-    // Rasterizer State
-    // -----------------------------
-
-    CD3D11_RASTERIZER_DESC shadowRast = {};
+	CD3D11_RASTERIZER_DESC shadowRast = {};
 	shadowRast.FillMode = D3D11_FILL_SOLID;
 	shadowRast.CullMode = D3D11_CULL_BACK;
     shadowRast.DepthBias = 500;
@@ -347,9 +321,6 @@ bool Renderer::CreateResources()
     if (FAILED(device->CreateRasterizerState(&rastDesc, &m_rasterizerState)))
         return false;
 
-    // -----------------------------
-    // Depth Stencil State
-    // -----------------------------
     D3D11_DEPTH_STENCIL_DESC depthDesc = {};
     depthDesc.DepthEnable = TRUE;
     depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
@@ -361,8 +332,7 @@ bool Renderer::CreateResources()
     // -----------------------------
     // Shadow map
     // -----------------------------
-    
-    // STEP 1: Create texture array FIRST
+  
     D3D11_TEXTURE2D_DESC texDesc = {};
     texDesc.Width = SHADOW_MAP_SIZE;
     texDesc.Height = SHADOW_MAP_SIZE;
@@ -379,7 +349,6 @@ bool Renderer::CreateResources()
         return false;
     }
 
-    // STEP 2: Create individual cascade DSVs
     for (uint32_t i = 0; i < NUM_CASCADES; ++i)
     {
         D3D11_DEPTH_STENCIL_VIEW_DESC desc = {};
@@ -399,7 +368,6 @@ bool Renderer::CreateResources()
         }
     }
 
-    // STEP 3: Create full array DSV
     D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
     dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
     dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
@@ -413,7 +381,6 @@ bool Renderer::CreateResources()
         return false;
     }
 
-    // STEP 4: Create SRV
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
     srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
     srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
@@ -428,7 +395,6 @@ bool Renderer::CreateResources()
         return false;
     }
 
-	// Sampler for shadow map
     D3D11_SAMPLER_DESC shadowSamp = {};
     shadowSamp.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
     shadowSamp.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -451,7 +417,7 @@ bool Renderer::CreateResources()
 	// Lights 
 	// -----------------------------
 
-    // Create directional light (sun)
+    // Directional light (sun)
     SceneObject* sunLight = m_activeScene->CreateObject("Directional Light");
     sunLight->AddLightComponent();
     sunLight->GetLightComponent()->SetType(Engine::Scene::LightType::Directional);
@@ -459,7 +425,6 @@ bool Renderer::CreateResources()
     sunLight->GetLightComponent()->SetIntensity(1.0f);
     sunLight->GetTransform().SetRotationEuler({ 60.0f, -60.0f, 0.0f });
 
-    // Create initial viewport render target
     if (!CreateViewportRenderTarget(m_viewportWidth, m_viewportHeight))
         return false;
 
@@ -470,7 +435,6 @@ bool Renderer::CreateViewportRenderTarget(int width, int height)
 {
     ID3D11Device* device = m_deviceResources->GetDevice();
     
-    // Release existing resources
     if (m_viewportSRV) { m_viewportSRV->Release(); m_viewportSRV = nullptr; }
     if (m_viewportRTV) { m_viewportRTV->Release(); m_viewportRTV = nullptr; }
     if (m_viewportTexture) { m_viewportTexture->Release(); m_viewportTexture = nullptr; }
@@ -483,7 +447,6 @@ bool Renderer::CreateViewportRenderTarget(int width, int height)
     m_viewportWidth = width;
     m_viewportHeight = height;
     
-    // Create color texture
     D3D11_TEXTURE2D_DESC texDesc = {};
     texDesc.Width = width;
     texDesc.Height = height;
@@ -497,15 +460,12 @@ bool Renderer::CreateViewportRenderTarget(int width, int height)
     if (FAILED(device->CreateTexture2D(&texDesc, nullptr, &m_viewportTexture)))
         return false;
     
-    // Create RTV
     if (FAILED(device->CreateRenderTargetView(m_viewportTexture, nullptr, &m_viewportRTV)))
         return false;
     
-    // Create SRV
     if (FAILED(device->CreateShaderResourceView(m_viewportTexture, nullptr, &m_viewportSRV)))
         return false;
     
-    // Create depth texture
     D3D11_TEXTURE2D_DESC depthDesc = {};
     depthDesc.Width = width;
     depthDesc.Height = height;
@@ -519,7 +479,6 @@ bool Renderer::CreateViewportRenderTarget(int width, int height)
     if (FAILED(device->CreateTexture2D(&depthDesc, nullptr, &m_viewportDepthTexture)))
         return false;
     
-    // Create DSV
     if (FAILED(device->CreateDepthStencilView(m_viewportDepthTexture, nullptr, &m_viewportDSV)))
         return false;
     
@@ -602,14 +561,10 @@ void Renderer::Render()
     if (Input::IsKeyPressed(VK_F1))
         ToggleShadowDebug();
    
-    // Update camera FIRST so both shadow pass and main pass use consistent matrices
-    float dt = 0.016f; // temporary
+    float dt = 0.016f; 
     m_camera.Update(dt);
     
-    // Gather lights from scene objects
     GatherLightsFromScene();
-
-    // Compute cascade splits BEFORE shadow pass
     ComputeCascadeSplits();
 
     ShadowPass();
@@ -620,10 +575,9 @@ void Renderer::Render()
     }
     else
     {
-        MainRenderPass(); // your current scene draw code
+        MainRenderPass();
     }
-   
-    // Note: Present() removed - call it from main.cpp after ImGui rendering
+ 
 }
 
 void Renderer::ShadowPass()
@@ -633,7 +587,6 @@ void Renderer::ShadowPass()
     ID3D11Device* device = m_deviceResources->GetDevice();
     ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
 
-    // Ensure shadow map is not bound as SRV
     ID3D11ShaderResourceView* nullSRV[1] = { nullptr };
     context->PSSetShaderResources(1, 1, nullSRV);
 
@@ -1148,6 +1101,77 @@ Mesh* Renderer::ImportMesh(const std::string& filepath)
     m_importedMeshes.push_back(std::move(mesh));
     return ptr;
 }
+
+void Renderer::ImportMeshAsync(const std::string& filepath)
+{
+    if (!m_deviceResources) return;
+    // If a previous import thread is running, join it first
+    if (m_importThread.joinable())
+        m_importThread.join();
+
+    // Reset state
+    m_importInProgress.store(true);
+    m_importProgress.store(0.0f);
+    {
+        std::lock_guard<std::mutex> lk(m_importMutex);
+        m_importVertices.clear();
+        m_importIndices.clear();
+        m_hasImportResult.store(false);
+        m_importSuccess = false;
+        m_importPath = filepath;
+    }
+
+    // Start worker thread to call Assimp and fill CPU-side vectors
+    m_importThread = std::thread([this, filepath]() {
+        std::vector<Vertex> verts;
+        std::vector<uint32_t> inds;
+        // Pass device pointer as first parameter, then filepath, then output vectors
+        if (ModelLoader::LoadFromFile(filepath, m_deviceResources->GetDevice(), verts, inds, &m_importProgress))
+        {
+            std::lock_guard<std::mutex> lk(m_importMutex);
+            m_importVertices = std::move(verts);
+            m_importIndices = std::move(inds);
+            m_importSuccess = true;
+            m_hasImportResult.store(true);
+        }
+        else
+        {
+            std::lock_guard<std::mutex> lk(m_importMutex);
+            m_importSuccess = false;
+            m_hasImportResult.store(true);
+        }
+        m_importInProgress.store(false);
+    });
+}
+
+Mesh* Renderer::FinalizePendingImport()
+{
+    std::string importPath;
+    bool success = false;
+
+    {
+        std::lock_guard<std::mutex> lk(m_importMutex);
+        if (!m_hasImportResult.load())
+            return nullptr;
+
+        success = m_importSuccess;
+        importPath = m_importPath;
+        m_hasImportResult.store(false);
+    }
+
+    // Ensure worker thread is done before finishing import on the main thread.
+    if (m_importThread.joinable())
+    {
+        m_importThread.join();
+    }
+
+    if (!success || importPath.empty())
+        return nullptr;
+
+    // Re-import on main thread via the stable synchronous path.
+    return ImportMesh(importPath);
+}
+
 
 ID3D11Device* Renderer::GetDevice() const
 {

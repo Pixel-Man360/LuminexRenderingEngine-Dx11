@@ -1,0 +1,360 @@
+﻿#include "MenuBarPanel.h"
+#include "UndoManager.h"
+#include "imgui.h"
+#include "../Graphics/Renderer.h"
+#include "../Graphics/Mesh.h"
+#include "../Scene/Scene.h"
+#include "../Scene/SceneObject.h"
+#include "../Scene/LightComponent.h"
+#include <Windows.h>
+#include <commdlg.h>
+#include <cctype>
+
+using namespace Engine::Editor;
+using namespace Engine::Graphics;
+
+MenuBarPanel::~MenuBarPanel()
+{
+    if (m_importThread.joinable())
+    {
+        m_importThread.join();
+    }
+}
+
+static std::string ExtractFileStemNoThrow(const std::string& filePath)
+{
+    if (filePath.empty())
+        return "Imported Mesh";
+
+    size_t slash = filePath.find_last_of("\\/");
+    size_t nameStart = (slash == std::string::npos) ? 0 : slash + 1;
+
+    if (nameStart >= filePath.size())
+        return "Imported Mesh";
+
+    size_t dot = filePath.find_last_of('.');
+    if (dot == std::string::npos || dot <= nameStart)
+        return filePath.substr(nameStart);
+
+    return filePath.substr(nameStart, dot - nameStart);
+}
+
+
+static std::string OpenMeshFileDialog()
+{
+    char filename[MAX_PATH] = { 0 };
+
+    OPENFILENAMEA ofn = {};
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = nullptr;
+    ofn.lpstrFilter = "3D Models\0*.obj;*.fbx;*.gltf;*.glb;*.dae;*.3ds;*.blend\0"
+                      "OBJ Files (*.obj)\0*.obj\0"
+                      "FBX Files (*.fbx)\0*.fbx\0"
+                      "glTF Files (*.gltf;*.glb)\0*.gltf;*.glb\0"
+                      "All Files (*.*)\0*.*\0";
+    ofn.lpstrFile = filename;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.lpstrTitle = "Import Mesh";
+    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+
+    if (GetOpenFileNameA(&ofn))
+    {
+        return std::string(filename);
+    }
+    return "";
+}
+
+static std::string GenerateUniqueName(Engine::Scene::Scene* scene, const std::string& baseName)
+{
+    if (!scene) return baseName;
+
+    int highestNumber = 0;
+    bool baseNameExists = false;
+
+    for (auto& obj : scene->GetObjects())
+    {
+        const std::string& objName = obj->GetName();
+
+        if (objName == baseName)
+        {
+            baseNameExists = true;
+            continue;
+        }
+
+        // Match pattern: "<baseName> (N)"
+        if (objName.size() <= baseName.size() + 3) // at least "a (2)"
+            continue;
+        if (objName.compare(0, baseName.size(), baseName) != 0)
+            continue;
+        if (objName[baseName.size()] != ' ' || objName[baseName.size() + 1] != '(')
+            continue;
+        if (objName.back() != ')')
+            continue;
+
+        const size_t numStart = baseName.size() + 2;
+        const size_t numLen = objName.size() - numStart - 1;
+        if (numLen == 0)
+            continue;
+
+        bool allDigits = true;
+        for (size_t i = numStart; i < numStart + numLen; ++i)
+        {
+            if (!std::isdigit(static_cast<unsigned char>(objName[i])))
+            {
+                allDigits = false;
+                break;
+            }
+        }
+
+        if (!allDigits)
+            continue;
+
+        int num = std::atoi(objName.substr(numStart, numLen).c_str());
+        if (num > highestNumber)
+        {
+            highestNumber = num;
+        }
+    }
+
+    if (!baseNameExists && highestNumber == 0)
+    {
+        return baseName;  
+    }
+    else if (!baseNameExists)
+    {
+        return baseName;
+    }
+    else
+    {
+        int nextNumber = highestNumber + 1;
+        if (nextNumber < 2) nextNumber = 2;
+        return baseName + " (" + std::to_string(nextNumber) + ")";
+    }
+}
+
+void MenuBarPanel::Draw(EditorContext& context)
+{
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("Edit"))
+        {
+            bool canUndo = UndoManager::Get().CanUndo();
+            bool canRedo = UndoManager::Get().CanRedo();
+            
+            std::string undoText = "Undo";
+            if (canUndo)
+                undoText += " (" + UndoManager::Get().GetUndoDescription() + ")";
+            
+            std::string redoText = "Redo";
+            if (canRedo)
+                redoText += " (" + UndoManager::Get().GetRedoDescription() + ")";
+            
+            if (ImGui::MenuItem(undoText.c_str(), "Ctrl+Z", false, canUndo))
+            {
+                UndoManager::Get().Undo();
+            }
+            if (ImGui::MenuItem(redoText.c_str(), "Ctrl+Y", false, canRedo))
+            {
+                UndoManager::Get().Redo();
+            }
+            ImGui::EndMenu();
+        }
+
+
+        if (ImGui::BeginMenu("Create"))
+        {
+            if (ImGui::BeginMenu("3D Object"))
+            {
+                if (ImGui::MenuItem("Cube"))
+                {
+                    if (context.ActiveScene && m_renderer)
+                    {
+                        auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Cube"));
+                        obj->SetMesh(m_renderer->GetCubeMesh());
+                        context.SelectedObject = obj;
+                    }
+                }
+                if (ImGui::MenuItem("Sphere"))
+                {
+                    if (context.ActiveScene && m_renderer)
+                    {
+                        auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Sphere"));
+                        obj->SetMesh(m_renderer->GetSphereMesh());
+                        context.SelectedObject = obj;
+                    }
+                }
+                if (ImGui::MenuItem("Cylinder"))
+                {
+                    if (context.ActiveScene && m_renderer)
+                    {
+                        auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Cylinder"));
+                        obj->SetMesh(m_renderer->GetCylinderMesh());
+                        context.SelectedObject = obj;
+                    }
+                }
+                if (ImGui::MenuItem("Capsule"))
+                {
+                    if (context.ActiveScene && m_renderer)
+                    {
+                        auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Capsule"));
+                        obj->SetMesh(m_renderer->GetCapsuleMesh());
+                        context.SelectedObject = obj;
+                    }
+                }
+                if (ImGui::MenuItem("Plane"))
+                {
+                    if (context.ActiveScene && m_renderer)
+                    {
+                        auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Plane"));
+                        obj->SetMesh(m_renderer->GetPlaneMesh());
+                        context.SelectedObject = obj;
+                    }
+                }
+                ImGui::EndMenu();
+            }
+
+            if (ImGui::BeginMenu("Light"))
+            {
+                if (ImGui::MenuItem("Directional Light"))
+                {
+                    if (context.ActiveScene)
+                    {
+                        auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Directional Light"));
+                        obj->AddLightComponent();
+                        obj->GetLightComponent()->SetType(Engine::Scene::LightType::Directional);
+                        obj->GetTransform().SetRotationEuler({ 50.0f, -30.0f, 0.0f });
+                        context.SelectedObject = obj;
+                    }
+                }
+                if (ImGui::MenuItem("Point Light"))
+                {
+                    if (context.ActiveScene)
+                    {
+                        auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Point Light"));
+                        obj->AddLightComponent();
+                        obj->GetLightComponent()->SetType(Engine::Scene::LightType::Point);
+                        obj->GetLightComponent()->SetRange(10.0f);
+                        obj->GetTransform().SetPosition({ 0.0f, 3.0f, 0.0f });
+                        context.SelectedObject = obj;
+                    }
+                }
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Empty Object"))
+            {
+                if (context.ActiveScene)
+                {
+                    auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, "Empty"));
+                    context.SelectedObject = obj;
+                }
+            }
+
+            ImGui::EndMenu();
+        }
+
+    
+        if (ImGui::BeginMenu("Window"))
+        {
+            ImGui::MenuItem("Scene Hierarchy", nullptr, true);
+            ImGui::MenuItem("Inspector", nullptr, true);
+            ImGui::MenuItem("Stats", nullptr, true);
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Assets"))
+        {
+            if (ImGui::MenuItem("Import Mesh"))
+            {
+                if (!m_importInProgress.load() && !m_importDone.load())
+                {
+                    std::string filepath = OpenMeshFileDialog();
+                    if (!filepath.empty() && context.ActiveScene && m_renderer)
+                    {
+                        if (m_importThread.joinable())
+                            m_importThread.join();
+
+                        m_pendingImportFilePath = filepath;
+                        m_importProgress.store(0.0f);
+                        m_importSucceeded.store(false);
+                        m_importDone.store(false);
+                        m_importedMeshResult = nullptr;
+                        m_importInProgress.store(true);
+                        m_shouldOpenPopup = true;
+
+                        m_importThread = std::thread([this, filepath]() {
+                            auto* mesh = m_renderer->ImportMesh(filepath);
+                            m_importedMeshResult = mesh;
+                            m_importProgress.store(1.0f);
+                            m_importSucceeded.store(mesh != nullptr);
+                            m_importDone.store(true);
+                            m_importInProgress.store(false);
+                        });
+                    }
+                }
+            }
+
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+
+    if (m_shouldOpenPopup) 
+    {
+        ImGui::OpenPopup("Importing Mesh");
+        m_shouldOpenPopup = false;
+    }
+
+    if (ImGui::BeginPopupModal("Importing Mesh", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        if (m_importInProgress.load())
+        {
+            float progress = m_importProgress.load();
+            progress += ImGui::GetIO().DeltaTime * 0.4f;
+            if (progress > 0.99f) progress = 0.99f;
+            m_importProgress.store(progress);
+
+            ImGui::Text("Progress...");
+            ImGui::ProgressBar(progress, ImVec2(300, 0));
+        }
+        else if (m_importDone.load())
+        {
+            ImGui::Text("Import complete! 100%%");
+            ImGui::ProgressBar(1.0f, ImVec2(300, 0));
+
+            if (m_importSucceeded.load() && m_importedMeshResult && context.ActiveScene)
+            {
+                std::string meshName = ExtractFileStemNoThrow(m_pendingImportFilePath);
+                if (meshName.empty()) meshName = "Imported Mesh";
+
+                auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, meshName));
+                obj->SetMesh(m_importedMeshResult);
+                obj->SetMaterial(m_renderer->CreateDefaultMaterial());
+                context.SelectedObject = obj;
+            }
+
+            m_pendingImportFilePath.clear();
+            m_importDone.store(false);
+            m_importSucceeded.store(false);
+            m_importProgress.store(0.0f);
+            m_importedMeshResult = nullptr;
+
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Z))
+    {
+        UndoManager::Get().Undo();
+    }
+    if (io.KeyCtrl && io.KeyShift && ImGui::IsKeyPressed(ImGuiKey_Z))
+    {
+        UndoManager::Get().Redo();
+    }
+}

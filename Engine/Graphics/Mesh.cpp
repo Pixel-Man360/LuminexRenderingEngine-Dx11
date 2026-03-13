@@ -12,9 +12,6 @@ bool Mesh::CreateCube(ID3D11Device* device)
         return false;
     }
 
-    // ----------------------------
-    // 8 UNIQUE VERTICES
-    // ----------------------------
     Vertex vertices[] =
     {
         // Front (+Z)
@@ -54,10 +51,6 @@ bool Mesh::CreateCube(ID3D11Device* device)
          {{ 1,-1, 1},{0,-1,0},{1,1}},
     };
 
-    // ----------------------------
-    // 36 INDICES (12 TRIANGLES)
-    // ----------------------------
-
     uint32_t indices[] =
     {
         0,1,2, 0,2,3,
@@ -70,9 +63,6 @@ bool Mesh::CreateCube(ID3D11Device* device)
 
     m_indexCount = _countof(indices);
 
-    // ----------------------------
-    // VERTEX BUFFER
-    // ----------------------------
     D3D11_BUFFER_DESC vbDesc = {};
     vbDesc.Usage = D3D11_USAGE_DEFAULT;
     vbDesc.ByteWidth = sizeof(vertices);
@@ -86,9 +76,6 @@ bool Mesh::CreateCube(ID3D11Device* device)
         return false;
     }
 
-    // ----------------------------
-    // INDEX BUFFER
-    // ----------------------------
     D3D11_BUFFER_DESC ibDesc = {};
     ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
     ibDesc.ByteWidth = sizeof(indices);
@@ -577,11 +564,39 @@ bool Mesh::CreatePlane(ID3D11Device* device)
     return true;
 }
 
+bool Mesh::CreateFromData(ID3D11Device* device, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices)
+{
+    if (!device) return false;
+    if (vertices.empty() || indices.empty()) return false;
 
+    m_indexCount = static_cast<UINT>(indices.size());
+
+    D3D11_BUFFER_DESC vbDesc = {};
+    vbDesc.Usage = D3D11_USAGE_DEFAULT;
+    vbDesc.ByteWidth = static_cast<UINT>(sizeof(Vertex) * vertices.size());
+    vbDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA vbData = {};
+    vbData.pSysMem = vertices.data();
+
+    HRESULT hr = device->CreateBuffer(&vbDesc, &vbData, m_vertexBuffer.GetAddressOf());
+    if (FAILED(hr)) return false;
+
+    D3D11_BUFFER_DESC ibDesc = {};
+    ibDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    ibDesc.ByteWidth = static_cast<UINT>(sizeof(uint32_t) * indices.size());
+    ibDesc.Usage = D3D11_USAGE_DEFAULT;
+
+    D3D11_SUBRESOURCE_DATA ibData = {};
+    ibData.pSysMem = indices.data();
+
+    hr = device->CreateBuffer(&ibDesc, &ibData, m_indexBuffer.GetAddressOf());
+    return SUCCEEDED(hr);
+}
 
 void Mesh::Draw(ID3D11DeviceContext* context)
 {
-    if (!context || !m_vertexBuffer) return;
+    if (!context || !m_vertexBuffer || !m_indexBuffer || m_indexCount == 0) return;
 
     UINT stride = sizeof(Vertex);
     UINT offset = 0;

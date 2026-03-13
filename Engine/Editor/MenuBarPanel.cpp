@@ -6,13 +6,38 @@
 #include "../Scene/Scene.h"
 #include "../Scene/SceneObject.h"
 #include "../Scene/LightComponent.h"
-#include <regex>
 #include <Windows.h>
 #include <commdlg.h>
-#include <filesystem>
+#include <cctype>
 
 using namespace Engine::Editor;
 using namespace Engine::Graphics;
+
+MenuBarPanel::~MenuBarPanel()
+{
+    if (m_importThread.joinable())
+    {
+        m_importThread.join();
+    }
+}
+
+static std::string ExtractFileStemNoThrow(const std::string& filePath)
+{
+    if (filePath.empty())
+        return "Imported Mesh";
+
+    size_t slash = filePath.find_last_of("\\/");
+    size_t nameStart = (slash == std::string::npos) ? 0 : slash + 1;
+
+    if (nameStart >= filePath.size())
+        return "Imported Mesh";
+
+    size_t dot = filePath.find_last_of('.');
+    if (dot == std::string::npos || dot <= nameStart)
+        return filePath.substr(nameStart);
+
+    return filePath.substr(nameStart, dot - nameStart);
+}
 
 
 static std::string OpenMeshFileDialog()
@@ -42,33 +67,53 @@ static std::string OpenMeshFileDialog()
 static std::string GenerateUniqueName(Engine::Scene::Scene* scene, const std::string& baseName)
 {
     if (!scene) return baseName;
-    
+
     int highestNumber = 0;
     bool baseNameExists = false;
-    
-    std::regex pattern("^" + baseName + "(?: \\((\\d+)\\))?$");
-    
- 
+
     for (auto& obj : scene->GetObjects())
     {
-        std::smatch match;
-        std::string objName = obj->GetName();
-        
-        if (std::regex_match(objName, match, pattern))
+        const std::string& objName = obj->GetName();
+
+        if (objName == baseName)
         {
-            if (match[1].matched)
+            baseNameExists = true;
+            continue;
+        }
+
+        if (objName.size() <= baseName.size() + 3)
+            continue;
+        if (objName.compare(0, baseName.size(), baseName) != 0)
+            continue;
+        if (objName[baseName.size()] != ' ' || objName[baseName.size() + 1] != '(')
+            continue;
+        if (objName.back() != ')')
+            continue;
+
+        const size_t numStart = baseName.size() + 2;
+        const size_t numLen = objName.size() - numStart - 1;
+        if (numLen == 0)
+            continue;
+
+        bool allDigits = true;
+        for (size_t i = numStart; i < numStart + numLen; ++i)
+        {
+            if (!std::isdigit(static_cast<unsigned char>(objName[i])))
             {
-                int num = std::stoi(match[1].str());
-                if (num > highestNumber)
-                    highestNumber = num;
-            }
-            else
-            {
-                baseNameExists = true;
+                allDigits = false;
+                break;
             }
         }
+
+        if (!allDigits)
+            continue;
+
+        int num = std::atoi(objName.substr(numStart, numLen).c_str());
+        if (num > highestNumber)
+        {
+            highestNumber = num;
+        }
     }
-    
 
     if (!baseNameExists && highestNumber == 0)
     {
@@ -90,26 +135,6 @@ void MenuBarPanel::Draw(EditorContext& context)
 {
     if (ImGui::BeginMainMenuBar())
     {
-
-        //if (ImGui::BeginMenu("File"))
-        //{
-        //    if (ImGui::MenuItem("New Scene", "Ctrl+N"))
-        //    {
-        //        // TODO: Implement new scene
-        //    }
-        //    if (ImGui::MenuItem("Save Scene", "Ctrl+S"))
-        //    {
-        //        // TODO: Implement save
-        //    }
-        //    ImGui::Separator();
-        //    if (ImGui::MenuItem("Exit", "Alt+F4"))
-        //    {
-        //        // TODO: Implement exit
-        //    }
-        //    ImGui::EndMenu();
-        //}
-
-
         if (ImGui::BeginMenu("Edit"))
         {
             bool canUndo = UndoManager::Get().CanUndo();
@@ -240,22 +265,33 @@ void MenuBarPanel::Draw(EditorContext& context)
 
         if (ImGui::BeginMenu("Assets"))
         {
-            if(ImGui::MenuItem("Import Mesh"))
+            if (ImGui::MenuItem("Import Mesh"))
             {
-                std::string filepath = OpenMeshFileDialog();
-                if (!filepath.empty() && context.ActiveScene && m_renderer)
+                if (!m_importInProgress.load() && !m_importDone.load())
                 {
-                    Mesh* importedMesh = m_renderer->ImportMesh(filepath);
-                    if (importedMesh)
+                    std::string filepath = OpenMeshFileDialog();
+                    if (!filepath.empty() && context.ActiveScene && m_renderer)
                     {
-                        // Extract filename without extension for object name
-                        std::filesystem::path path(filepath);
-                        std::string meshName = path.stem().string();
+                        if (m_importThread.joinable())
+                            m_importThread.join();
 
-                        auto* obj = context.ActiveScene->CreateObject(
-                            GenerateUniqueName(context.ActiveScene, meshName));
-                        obj->SetMesh(importedMesh);
-                        context.SelectedObject = obj;
+                        m_pendingImportFilePath = filepath;
+                        m_importProgress.store(0.0f);
+                        m_importSucceeded.store(false);
+                        m_importDone.store(false);
+                        m_importedMeshResult = nullptr;
+                        m_importInProgress.store(true);
+                        m_shouldOpenPopup = true;
+
+                        m_importThread = std::thread([this, filepath]() 
+                        {
+                            auto* mesh = m_renderer->ImportMesh(filepath);
+                            m_importedMeshResult = mesh;
+                            m_importProgress.store(1.0f);
+                            m_importSucceeded.store(mesh != nullptr);
+                            m_importDone.store(true);
+                            m_importInProgress.store(false);
+                        });
                     }
                 }
             }
@@ -266,6 +302,51 @@ void MenuBarPanel::Draw(EditorContext& context)
         ImGui::EndMainMenuBar();
     }
 
+    if (m_shouldOpenPopup) 
+    {
+        ImGui::OpenPopup("Importing Mesh");
+        m_shouldOpenPopup = false;
+    }
+
+    if (ImGui::BeginPopupModal("Importing Mesh", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        if (m_importInProgress.load())
+        {
+            float progress = m_importProgress.load();
+            progress += ImGui::GetIO().DeltaTime * 0.4f;
+            if (progress > 0.99f) progress = 0.99f;
+            m_importProgress.store(progress);
+
+            ImGui::Text("Progress...");
+            ImGui::ProgressBar(progress, ImVec2(300, 0));
+        }
+        else if (m_importDone.load())
+        {
+            ImGui::Text("Import complete! 100%%");
+            ImGui::ProgressBar(1.0f, ImVec2(300, 0));
+
+            if (m_importSucceeded.load() && m_importedMeshResult && context.ActiveScene)
+            {
+                std::string meshName = ExtractFileStemNoThrow(m_pendingImportFilePath);
+                if (meshName.empty()) meshName = "Imported Mesh";
+
+                auto* obj = context.ActiveScene->CreateObject(GenerateUniqueName(context.ActiveScene, meshName));
+                obj->SetMesh(m_importedMeshResult);
+                obj->SetMaterial(m_renderer->CreateDefaultMaterial());
+                context.SelectedObject = obj;
+            }
+
+            m_pendingImportFilePath.clear();
+            m_importDone.store(false);
+            m_importSucceeded.store(false);
+            m_importProgress.store(0.0f);
+            m_importedMeshResult = nullptr;
+
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
 
     ImGuiIO& io = ImGui::GetIO();
     if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_Z))

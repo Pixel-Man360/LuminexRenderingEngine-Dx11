@@ -3,14 +3,36 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/ProgressHandler.hpp>
 #include <Windows.h>
 
 using namespace Engine::Graphics;
 
+class AssimpProgressHandler : public Assimp::ProgressHandler
+{
+public:
+    AssimpProgressHandler(std::atomic<float>* p) : m_progress(p) {}
+
+    bool Update(float percentage) override
+    {
+        if (m_progress)
+            m_progress->store(percentage / 100.0f); 
+        return true; // continue
+    }
+
+private:
+    std::atomic<float>* m_progress;
+};
+
 bool ModelLoader::LoadFromFile(const std::string& filepath, ID3D11Device* device,
-                               std::vector<Vertex>& outVertices, std::vector<uint32_t>& outIndices)
+                               std::vector<Vertex>& outVertices, std::vector<uint32_t>& outIndices,
+                               std::atomic<float>* progress)
 {
     Assimp::Importer importer;
+
+    AssimpProgressHandler handler(progress);
+    if (progress)
+        importer.SetProgressHandler(&handler);
 
     const aiScene* scene = importer.ReadFile(filepath,
         aiProcess_Triangulate |
@@ -26,15 +48,16 @@ bool ModelLoader::LoadFromFile(const std::string& filepath, ID3D11Device* device
         return false;
     }
 
-    // Process all meshes in the scene
-    for (unsigned int m = 0; m < scene->mNumMeshes; m++)
-    {
-        aiMesh* mesh = scene->mMeshes[m];
-        uint32_t baseVertex = static_cast<uint32_t>(outVertices.size());
+	outVertices.clear();
+	outIndices.clear();
 
-        // Extract vertices
-        for (unsigned int i = 0; i < mesh->mNumVertices; i++)
-        {
+	for (unsigned int m = 0; m < scene->mNumMeshes; m++)
+	{
+		aiMesh* mesh = scene->mMeshes[m];
+		uint32_t baseVertex = static_cast<uint32_t>(outVertices.size());
+
+		for (unsigned int i = 0; i < mesh->mNumVertices; i++)
+		{
             Vertex vertex{};
 
             vertex.Position = 
@@ -66,7 +89,6 @@ bool ModelLoader::LoadFromFile(const std::string& filepath, ID3D11Device* device
             outVertices.push_back(vertex);
         }
 
-        // Extract indices
         for (unsigned int i = 0; i < mesh->mNumFaces; i++)
         {
             aiFace& face = mesh->mFaces[i];
@@ -76,6 +98,28 @@ bool ModelLoader::LoadFromFile(const std::string& filepath, ID3D11Device* device
             }
         }
     }
+
+    // Validate mesh indices before creating GPU buffers.
+    const uint32_t vertexCount = static_cast<uint32_t>(outVertices.size());
+    for (uint32_t idx : outIndices)
+    {
+        if (idx >= vertexCount)
+        {
+            std::string errorMsg = "Model contains invalid index data: " + filepath;
+            MessageBoxA(nullptr, errorMsg.c_str(), "Model Import Error", MB_OK | MB_ICONERROR);
+            return false;
+        }
+    }
+
+    if (outVertices.empty() || outIndices.empty())
+    {
+        std::string errorMsg = "Model contains no renderable geometry: " + filepath;
+        MessageBoxA(nullptr, errorMsg.c_str(), "Model Import Error", MB_OK | MB_ICONERROR);
+        return false;
+    }
+
+    if (progress)
+        progress->store(1.0f);
 
     return true;
 }
@@ -87,7 +131,7 @@ bool ModelLoader::CreateMeshFromFile(const std::string& filepath, ID3D11Device* 
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
 
-    if (!LoadFromFile(filepath, device, vertices, indices))
+    if (!LoadFromFile(filepath, device, vertices, indices, nullptr))
         return false;
 
     indexCount = static_cast<UINT>(indices.size());

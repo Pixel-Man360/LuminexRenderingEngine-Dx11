@@ -1,5 +1,8 @@
 #pragma once
 #include "EditorPanel.h"
+#include <string>
+#include <atomic>
+#include <thread>
 
 namespace Engine::Graphics 
 { 
@@ -12,10 +15,19 @@ namespace Engine::Editor
     class MenuBarPanel : public EditorPanel
     {
     public:
+        ~MenuBarPanel() override;
         void Draw(EditorContext& context) override;
         void SetRenderer(Engine::Graphics::Renderer* renderer) { m_renderer = renderer; }
 
     private:
         Engine::Graphics::Renderer* m_renderer = nullptr;
+        std::string m_pendingImportFilePath;
+        std::atomic<bool> m_importInProgress{ false };
+        std::atomic<bool> m_importDone{ false };
+        std::atomic<bool> m_importSucceeded{ false };
+        std::atomic<float> m_importProgress{ 0.0f };
+        std::thread m_importThread;
+        Engine::Graphics::Mesh* m_importedMeshResult = nullptr;
+        bool m_shouldOpenPopup = false;
     };
 }

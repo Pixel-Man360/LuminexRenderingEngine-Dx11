@@ -33,6 +33,8 @@ namespace Engine::Graphics
 		bool CreatePlane(ID3D11Device* device);
         bool LoadFromFile(ID3D11Device* device, const std::string& filepath);
 
+        bool CreateFromData(ID3D11Device* device, const std::vector<Vertex>& vertices, const std::vector<uint32_t>& indices);
+
         void Draw(ID3D11DeviceContext* context);
 
         void Release();

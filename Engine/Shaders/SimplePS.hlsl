@@ -58,9 +58,13 @@ Texture2D NormalMap : register(t3);
 Texture2D MetallicMap : register(t4);
 Texture2D RoughnessMap : register(t5);
 Texture2D AOMap : register(t6);
+TextureCube IrradianceMap : register(t7);
+TextureCube PrefilterMap : register(t8);
+Texture2D BRDFLUT : register(t9);
 
 SamplerState TextureSampler : register(s0);
 SamplerComparisonState ShadowSampler : register(s1);
+SamplerState IBLSampler : register(s2);
 
 struct PSInput
 {
@@ -186,18 +190,19 @@ float3 FresnelSchlick(float cosTheta, float3 F0)
     return F0 + (1.0 - F0) * pow(saturate(1.0 - cosTheta), 5.0);
 }
 
-// ----------------------------------------------------
-// PIXEL ENTRY POINT
-// ----------------------------------------------------
+float3 FresnelSchlickRoughness( float cosTheta,float3 F0, float roughness)
+{
+    return F0 + (max(float3(1.0 - roughness, 1.0 - roughness,  1.0 - roughness), F0) - F0) * pow(saturate(1.0 - cosTheta), 5.0);
+}
+
+
 float4 main(PSInput input) : SV_TARGET
 {
     float3 N = normalize(input.normalWS);
-    float3 V = normalize(CameraPosition - input.posWS);
-
-    // Sample albedo: texture * color tint
-    // Tiling and offset included  
+    float3 V = normalize(CameraPosition - input.posWS); 
     float2 uv = input.uv * MaterialTiling + MaterialOffset;
     float3 albedo = MaterialAlbedo.rgb;
+    
     if (UseAlbedoMap)
     {
         float3 texColor = AlbedoMap.Sample(TextureSampler, uv).rgb;
@@ -208,16 +213,16 @@ float4 main(PSInput input) : SV_TARGET
     float roughness = UseRoughnessMap ? RoughnessMap.Sample(TextureSampler, uv).r : MaterialRoughness;
     float ao = UseAOMap ? AOMap.Sample(TextureSampler, uv).r : MaterialAO;
 
-    // Clamp roughness to avoid divide by zero in GGX
-    roughness = max(roughness, 0.04);
+  
+    metallic = saturate(metallic);
+    roughness = clamp(roughness, 0.04, 1.0);
+    ao = saturate(ao);
 
     float viewDepth = abs(input.posVS.z);
 
-    // Calculate F0 (reflectance at normal incidence)
-    // For dielectrics use 0.04, for metals use albedo color
+
     float3 F0 = lerp(float3(0.04, 0.04, 0.04), albedo, metallic);
 
-    // Reflectance equation
     float3 Lo = float3(0.0, 0.0, 0.0);
 
     for (int i = 0; i < LightCount; ++i)
@@ -232,13 +237,7 @@ float4 main(PSInput input) : SV_TARGET
         if (light.Type == LIGHT_DIRECTIONAL)
         {
             L = normalize(-light.Direction);
-            shadow = CalculateCascadedShadow
-            (
-                input.posWS,
-                viewDepth,
-                N,
-                L
-            );
+            shadow = CalculateCascadedShadow(input.posWS, viewDepth, N, L);
             radiance = light.Color * light.Intensity;
         }
         else
@@ -247,7 +246,6 @@ float4 main(PSInput input) : SV_TARGET
             float distance = length(toLight);
             L = toLight / distance;
 
-            // Smooth attenuation
             float rangeAttenuation = saturate(1.0f - (distance / light.Range));
             attenuation = rangeAttenuation * rangeAttenuation;
             
@@ -256,17 +254,14 @@ float4 main(PSInput input) : SV_TARGET
 
         float3 H = normalize(V + L);
         
-        // Cook-Torrance BRDF
         float NDF = DistributionGGX(N, H, roughness);
         float G = GeometrySmith(N, V, L, roughness);
         float3 F = FresnelSchlick(max(dot(H, V), 0.0), F0);
         
-        // Specular reflection
         float3 numerator = NDF * G * F;
         float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001;
         float3 specular = numerator / denominator;
         
-        // Energy conservation: diffuse + specular = 1
         float3 kS = F;
         float3 kD = (1.0 - kS) * (1.0 - metallic);
         
@@ -275,11 +270,23 @@ float4 main(PSInput input) : SV_TARGET
         Lo += (kD * albedo / PI + specular) * radiance * NdotL * shadow;
     }
 
-    // Ambient lighting - higher value for better visibility
-    float3 ambient = float3(0.15, 0.15, 0.15) * albedo * ao;
+    float3 F = FresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    float3 kS = F;
+    float3 kD = (1.0 - kS) * (1.0 - metallic);
+    
+    float3 irradiance = IrradianceMap.Sample(IBLSampler, N).rgb;
+    float3 diffuseIBL = irradiance * albedo;
+    
+    float3 R = reflect(-V, N);
+    const float MAX_REFLECTION_LOD = 4.0;
+    float3 prefilteredColor = PrefilterMap.SampleLevel(IBLSampler, R, roughness * MAX_REFLECTION_LOD).rgb;
+    float2 envBRDF = BRDFLUT.Sample(IBLSampler, float2(max(dot(N, V), 0.0), roughness)).rg;
+    float3 specularIBL = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+    
+    float3 ambient = (kD * diffuseIBL + specularIBL) * ao;
     float3 color = ambient + Lo;
 
-    // HDR tonemapping (ACES approximation)
+   
     float3 x = color;
     float a = 2.51f;
     float b = 0.03f;
@@ -288,10 +295,9 @@ float4 main(PSInput input) : SV_TARGET
     float e = 0.14f;
     color = saturate((x * (a * x + b)) / (x * (c * x + d) + e));
     
-    // Gamma correction
+
     color = pow(color, 1.0 / 2.2);
 
-    // Apply selection highlight
     if (input.selectionColor.w > 0.5f)
     {
         color = lerp(color, input.selectionColor.xyz, 0.3f);

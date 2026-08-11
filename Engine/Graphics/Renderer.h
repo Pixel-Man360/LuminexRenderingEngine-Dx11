@@ -179,6 +179,12 @@ namespace Engine::Graphics
         bool m_importSuccess = false;
         std::string m_importPath;
 
+		ComPtr<ID3D11ShaderResourceView> m_irradianceMap;
+		ComPtr<ID3D11ShaderResourceView> m_prefilterMap;
+		ComPtr<ID3D11ShaderResourceView> m_brdfLUT;
+
+        ComPtr<ID3D11SamplerState> m_iblSampler;
+
         bool CreateResources();
         void ShadowPass();
         void MainRenderPass();

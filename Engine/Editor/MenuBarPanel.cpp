@@ -313,7 +313,7 @@ void MenuBarPanel::Draw(EditorContext& context)
         if (m_importInProgress.load())
         {
             float progress = m_importProgress.load();
-            progress += ImGui::GetIO().DeltaTime * 0.4f;
+            progress += ImGui::GetIO().DeltaTime * 0.1;
             if (progress > 0.99f) progress = 0.99f;
             m_importProgress.store(progress);
 

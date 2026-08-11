@@ -18,6 +18,7 @@
 
 #include <DirectXMath.h>
 #include <WICTextureLoader.h>
+#include <DDSTextureLoader.h>
 #include <filesystem>
 
 using namespace Engine::Graphics;
@@ -258,6 +259,39 @@ bool Renderer::CreateResources()
         return false;
     }
 
+    if(FAILED(CreateDDSTextureFromFile(
+        device,
+        context, 
+        L"Assets/textures/IBL/Irradiance.dds",
+        nullptr,
+        &m_irradianceMap)))
+    {
+        MessageBox(nullptr, L"Failed to load irradiance map", L"Error", MB_OK);
+        return false;
+    }
+
+    if(FAILED(CreateDDSTextureFromFile(
+        device,
+        context, 
+        L"Assets/textures/IBL/PreFilter.dds",
+        nullptr,
+        &m_prefilterMap)))
+    {
+        MessageBox(nullptr, L"Failed to load prefiltered environment map", L"Error", MB_OK);
+        return false;
+    }
+
+    if(FAILED(CreateDDSTextureFromFile(
+        device,
+        context, 
+        L"Assets/textures/IBL/BRDFLUT.dds",
+        nullptr,
+        &m_brdfLUT)))
+    {
+        MessageBox(nullptr, L"Failed to load BRDF LUT", L"Error", MB_OK);
+        return false;
+    }
+
     // Populate texture list with defaults
     m_textures.clear();
     m_textures.push_back({ "None", nullptr });
@@ -297,10 +331,20 @@ bool Renderer::CreateResources()
     samp.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     samp.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     samp.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    samp.MaxLOD = D3D11_FLOAT32_MAX;
 
 	if (FAILED(device->CreateSamplerState(&samp, &m_samplerState)))
 		return false;
+
+
+    D3D11_SAMPLER_DESC iblSamp = samp;
+    iblSamp.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+    iblSamp.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+    iblSamp.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+    iblSamp.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    iblSamp.MinLOD = 0;
+    iblSamp.MaxLOD = D3D11_FLOAT32_MAX;
+	if (FAILED(device->CreateSamplerState(&iblSamp, &m_iblSampler)))         
+        return false;
 
 	CD3D11_RASTERIZER_DESC shadowRast = {};
 	shadowRast.FillMode = D3D11_FILL_SOLID;
@@ -859,11 +903,18 @@ void Renderer::MainRenderPass()
     context->PSSetConstantBuffers(3, 1, &materialCB);
 
     context->PSSetShaderResources(1, 1, &m_shadowMapSRVArray);
-    
-    // Bind both samplers together to ensure proper binding
-    ID3D11SamplerState* samplers[2] = { m_samplerState, m_shadowMapSampler };
-    context->PSSetSamplers(0, 2, samplers);
 
+    ID3D11ShaderResourceView* iblSRVs[3] = { m_irradianceMap.Get(),  m_prefilterMap.Get(),  m_brdfLUT.Get() };
+    context->PSSetShaderResources(7, 3, iblSRVs);
+
+    ID3D11SamplerState* samplers[3] =
+    {
+        m_samplerState,
+        m_shadowMapSampler,
+        m_iblSampler.Get()
+    };
+
+    context->PSSetSamplers(0, 3, samplers);
 
 
     // -----------------------------

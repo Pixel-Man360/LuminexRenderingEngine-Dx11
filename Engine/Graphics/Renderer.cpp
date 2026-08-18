@@ -249,7 +249,7 @@ bool Renderer::CreateResources()
 
   
 
-    if (FAILED(CreateWICTextureFromFileEx(device, context, L"Assets/textures/Ground.png", 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
+    if (FAILED(CreateWICTextureFromFileEx(device, context, L"Assets/textures/Ground2.png", 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
         0, D3D11_RESOURCE_MISC_GENERATE_MIPS, WIC_LOADER_FORCE_SRGB, nullptr, &m_groundTexture)))
     {
         MessageBox(nullptr, L"Failed to load ground texture", L"Error", MB_OK);
@@ -324,14 +324,23 @@ bool Renderer::CreateResources()
     ground->SetMaterial(mat);
     ground->GetMaterial()->SetRoughness(1.0f);
 	ground->GetMaterial()->SetMetallic(0.0f);
+	ground->GetMaterial()->SetTiling({ 3.0f, 3.0f });
+	ground->GetMaterial()->SetOffset({ 1.0f, 1.0f });
     ground->SetMesh(m_planeMesh);
     ground->GetTransform().SetPosition({ 0.5, -1.6f, 0 });
 
     D3D11_SAMPLER_DESC samp = {};
-    samp.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    samp.Filter = D3D11_FILTER_ANISOTROPIC;
+
     samp.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     samp.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     samp.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+
+    samp.MaxAnisotropy = 16;
+
+    samp.MipLODBias = 0.0f;
+    samp.MinLOD = 0.0f;
+    samp.MaxLOD = D3D11_FLOAT32_MAX;
    
 
 	if (FAILED(device->CreateSamplerState(&samp, &m_samplerState)))
@@ -339,11 +348,15 @@ bool Renderer::CreateResources()
 
 
     D3D11_SAMPLER_DESC iblSamp = samp;
+    iblSamp.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+
     iblSamp.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
     iblSamp.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
     iblSamp.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+
     iblSamp.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    iblSamp.MinLOD = 0;
+
+    iblSamp.MinLOD = 0.0f;
     iblSamp.MaxLOD = D3D11_FLOAT32_MAX;
 	if (FAILED(device->CreateSamplerState(&iblSamp, &m_iblSampler)))         
         return false;

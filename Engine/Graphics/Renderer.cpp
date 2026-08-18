@@ -2,6 +2,7 @@
 #include <thread>
 #include <mutex>
 #include <utility>
+#include <algorithm>
 #include "Renderer.h"
 #include "ModelLoader.h"
 #include "Shader.h"
@@ -237,23 +238,19 @@ bool Renderer::CreateResources()
     if (!m_cbMaterial->Create(device, sizeof(CBMaterial)))
         return false;
 
-    if (FAILED(CreateWICTextureFromFile(
-        device,
-        context,
-        L"Assets/textures/Brick.png",
-        nullptr,
-        &m_brickTexture)))
+ 
+    if (FAILED(CreateWICTextureFromFileEx( device, context, L"Assets/textures/Brick.png", 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
+        0, D3D11_RESOURCE_MISC_GENERATE_MIPS, WIC_LOADER_FORCE_SRGB, nullptr, &m_brickTexture )))
     {
         MessageBox(nullptr, L"Failed to load brick texture", L"Error", MB_OK);
         return false;
     }
 
-    if (FAILED(CreateWICTextureFromFile(
-        device,
-        context,
-        L"Assets/textures/Ground.png",
-        nullptr,
-        &m_groundTexture)))
+
+  
+
+    if (FAILED(CreateWICTextureFromFileEx(device, context, L"Assets/textures/Ground.png", 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
+        0, D3D11_RESOURCE_MISC_GENERATE_MIPS, WIC_LOADER_FORCE_SRGB, nullptr, &m_groundTexture)))
     {
         MessageBox(nullptr, L"Failed to load ground texture", L"Error", MB_OK);
         return false;
@@ -323,6 +320,8 @@ bool Renderer::CreateResources()
 	auto mat = CreateDefaultMaterial();
     mat->SetAlbedoMap(m_groundTexture);
     ground->SetMaterial(mat);
+    ground->GetMaterial()->SetRoughness(1.0f);
+	ground->GetMaterial()->SetMetallic(0.0f);
     ground->SetMesh(m_planeMesh);
     ground->GetTransform().SetPosition({ 0.5, -1.6f, 0 });
 
@@ -349,9 +348,9 @@ bool Renderer::CreateResources()
 	CD3D11_RASTERIZER_DESC shadowRast = {};
 	shadowRast.FillMode = D3D11_FILL_SOLID;
 	shadowRast.CullMode = D3D11_CULL_BACK;
-    shadowRast.DepthBias = 500;
+    shadowRast.DepthBias = 100;
 	shadowRast.DepthBiasClamp = 0.0f;
-	shadowRast.SlopeScaledDepthBias = 0.5f;
+	shadowRast.SlopeScaledDepthBias = 1.0f;
 	shadowRast.DepthClipEnable = TRUE;
 
     if (FAILED(device->CreateRasterizerState(&shadowRast, &m_shadowRasterizerState)))
@@ -466,7 +465,7 @@ bool Renderer::CreateResources()
     sunLight->AddLightComponent();
     sunLight->GetLightComponent()->SetType(Engine::Scene::LightType::Directional);
     sunLight->GetLightComponent()->SetColor({ 1.0f, 1.0f, 1.0f });
-    sunLight->GetLightComponent()->SetIntensity(1.0f);
+    sunLight->GetLightComponent()->SetIntensity(3.0f);
     sunLight->GetTransform().SetRotationEuler({ 60.0f, -60.0f, 0.0f });
 
     if (!CreateViewportRenderTarget(m_viewportWidth, m_viewportHeight))
@@ -639,16 +638,27 @@ void Renderer::ShadowPass()
     // --------------------------------------------------
     // Compute cascade light matrices
     // --------------------------------------------------
-    XMFLOAT3 dir = m_lights[0].Direction;
-    XMVECTOR lightDir = XMVector3Normalize(XMLoadFloat3(&dir));
+    const Light* shadowLight = nullptr;
 
+    for (const Light& light : m_lights)
+    {
+        if (light.Type == LIGHT_DIRECTIONAL)
+        {
+            shadowLight = &light;
+            break;
+        }
+    }
+
+    if (!shadowLight)
+    {
+        // No directional light = no CSM shadow pass.
+        return;
+    }
+
+    XMFLOAT3 dir = shadowLight->Direction;
+    XMVECTOR lightDir = XMVector3Normalize(XMLoadFloat3(&dir));
     XMMATRIX camView = m_camera.GetViewMatrix();
-    XMMATRIX camProj = XMMatrixPerspectiveFovLH(
-        XM_PIDIV4,
-        m_deviceResources->GetAspectRatio(),
-        m_nearZ,
-        m_farZ
-    );
+    XMMATRIX camProj = XMMatrixPerspectiveFovLH(XM_PIDIV4, m_deviceResources->GetAspectRatio(), m_nearZ, m_farZ);
 
     float prevSplit = m_nearZ;
     std::vector<XMVECTOR> frustumCorners;
@@ -874,10 +884,12 @@ void Renderer::MainRenderPass()
     // Lighting
     // -----------------------------
     CBLight cb = {};
-    cb.LightCount = (int)m_lights.size();
+
+    cb.LightCount = static_cast<int>(std::min<size_t>(m_lights.size(), MAX_LIGHTS));
+
     cb.CameraPosition = m_camera.GetPosition();
 
-    for (int i = 0; i < cb.LightCount; i++)
+    for (int i = 0; i < cb.LightCount; ++i)
     {
         cb.Lights[i] = m_lights[i];
     }
@@ -1075,7 +1087,7 @@ std::shared_ptr<Material> Renderer::CreateDefaultMaterial()
     mat->SetAlbedo({ 1.0f, 1.0f, 1.0f, 1.0f });
     mat->SetMetallic(0.1f);
     mat->SetRoughness(0.2f);
-    mat->SetAO(0.2f);
+    mat->SetAO(1.0f);
     mat->SetAlbedoMap(m_brickTexture);
     return mat;
 }
@@ -1125,6 +1137,18 @@ void Renderer::Release()
     if (m_shadowMapArray) m_shadowMapArray->Release();
     if (m_shadowMapSampler) m_shadowMapSampler->Release();
     if (m_shadowRasterizerState) m_shadowRasterizerState->Release();
+
+    if (m_fullscreenVB)
+    {
+        m_fullscreenVB->Release();
+        m_fullscreenVB = nullptr;
+    }
+
+    delete m_cbMaterial;
+    m_cbMaterial = nullptr;
+
+    delete m_shadowDebugShader;
+    m_shadowDebugShader = nullptr;
 
     delete m_shader;
 	delete m_cube;
@@ -1237,8 +1261,11 @@ ID3D11ShaderResourceView* Engine::Graphics::Renderer::ImportTextureFromFile(cons
     if (!device || !context) return nullptr;
 
     ID3D11ShaderResourceView* srv = nullptr;
-    if (FAILED(CreateWICTextureFromFile(device, context, filepath.c_str(), nullptr, &srv)))
+    if (FAILED(CreateWICTextureFromFileEx(device, context, filepath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
+        0, D3D11_RESOURCE_MISC_GENERATE_MIPS, WIC_LOADER_FORCE_SRGB, nullptr, &srv)))
     {
+        std::wstring errorMsg = L"Failed to load texture: " + filepath;
+		MessageBox(nullptr, errorMsg.c_str(), L"Error", MB_OK);
         return nullptr;
     }
 

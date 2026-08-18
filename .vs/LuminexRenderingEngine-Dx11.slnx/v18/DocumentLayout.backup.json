@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Shaders\\SimplePS.hlsl||{8B382828-6202-11D1-8870-0000F87579D2}",
-      "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:Engine\\Shaders\\SimplePS.hlsl||{8B382828-6202-11D1-8870-0000F87579D2}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Graphics\\Renderer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:Engine\\Graphics\\Renderer.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Shaders\\SimplePS.hlsl||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:Engine\\Shaders\\SimplePS.hlsl||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Graphics\\Renderer.h||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
@@ -37,8 +37,8 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedHeight": 319,
-          "SelectedChildIndex": 2,
+          "DockedHeight": 387,
+          "SelectedChildIndex": 8,
           "Children": [
             {
               "$type": "Bookmark",
@@ -50,13 +50,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "SimplePS.hlsl",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Shaders\\SimplePS.hlsl",
               "RelativeDocumentMoniker": "Engine\\Shaders\\SimplePS.hlsl",
               "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Shaders\\SimplePS.hlsl",
               "RelativeToolTip": "Engine\\Shaders\\SimplePS.hlsl",
-              "ViewState": "AgIAAMQAAAAAAAAAAAAwwOEAAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAAL0AAAAAAAAAAAAAAOUAAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
               "WhenOpened": "2026-08-11T18:52:04.237Z",
               "EditorCaption": ""
@@ -95,8 +95,7 @@
               "RelativeToolTip": "Engine\\Graphics\\Renderer.h",
               "ViewState": "AgIAAJ0AAAAAAAAAAAAuwMQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-03-13T18:21:04.055Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-13T18:21:04.055Z"
             },
             {
               "$type": "Document",
@@ -108,7 +107,8 @@
               "RelativeToolTip": "Engine\\Core\\Camera.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-13T18:14:11.057Z"
+              "WhenOpened": "2026-03-13T18:14:11.057Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -124,13 +124,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "Renderer.cpp",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Graphics\\Renderer.cpp",
               "RelativeDocumentMoniker": "Engine\\Graphics\\Renderer.cpp",
               "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Graphics\\Renderer.cpp",
               "RelativeToolTip": "Engine\\Graphics\\Renderer.cpp",
-              "ViewState": "AgIAAHUDAAAAAAAAAAAuwJEDAAAaAAAAAAAAAA==",
+              "ViewState": "AgIAAB4BAAAAAAAAAAAQwEMBAAAqAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-02-20T10:35:28.986Z",
               "EditorCaption": ""
@@ -138,7 +138,7 @@
           ]
         },
         {
-          "DockedHeight": 81,
+          "DockedHeight": 13,
           "SelectedChildIndex": -1,
           "Children": [
             {

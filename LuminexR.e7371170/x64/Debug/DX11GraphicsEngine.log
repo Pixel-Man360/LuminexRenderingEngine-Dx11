@@ -1,5 +1,2 @@
-﻿K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Shaders\SimplePS.hlsl(85,17): warning X4000: use of potentially uninitialized variable (SelectCascade)
-K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Shaders\SimplePS.hlsl(110,20): warning X4000: use of potentially uninitialized variable (CalculateCascadedShadow)
-  
-  compilation object save succeeded; see K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\SimplePS.cso
+﻿  Renderer.cpp
   DX11GraphicsEngine.vcxproj -> K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\LuminexRenderingEngine-Dx11.exe

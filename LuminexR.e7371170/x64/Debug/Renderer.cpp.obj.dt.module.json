@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "LuminexR.e7371170\\x64\\Debug\\Renderer.obj",
+            "outputs": [
+                "LuminexR.e7371170\\x64\\Debug\\Renderer.cpp.obj.dt.module.json",
+                "LuminexR.e7371170\\x64\\Debug\\Renderer.cpp.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}

@@ -109,9 +109,9 @@ float CalculateCascadedShadow(float3 posWS, float viewDepth,
         proj.z < 0 || proj.z > 1)
         return 1.0f;
 
-    float bias = max(0.1f * (1.0f - dot(normalWS, lightDir)), 0.0002f);
+    float bias = max(0.001f * (1.0f - dot(normalWS, lightDir)), 0.0001f);
 
-    // Poisson disk samples for high-quality soft shadows
+  
     static const float2 poissonDisk[16] = 
     {
         float2(-0.94201624, -0.39906216),
@@ -131,9 +131,9 @@ float CalculateCascadedShadow(float3 posWS, float viewDepth,
         float2(0.19984126, 0.78641367),
         float2(0.14383161, -0.14100790)
     };
-    
-    // Softness radius - VERY large because shadow frustum covers huge area
-    float softness = 7.0f / SHADOW_MAP_SIZE;
+
+
+    float softness = 1.5f / SHADOW_MAP_SIZE;
     
     float shadow = 0.0f;
     
@@ -282,9 +282,25 @@ float4 main(PSInput input) : SV_TARGET
     float3 prefilteredColor = PrefilterMap.SampleLevel(IBLSampler, R, roughness * MAX_REFLECTION_LOD).rgb;
     float2 envBRDF = BRDFLUT.Sample(IBLSampler, float2(max(dot(N, V), 0.0), roughness)).rg;
     float3 specularIBL = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+
+
+   
+    float DiffuseIBLIntensity  = 0.2f;
+    float SpecularIBLIntensity = 1.0f;
+
+    float3 diffuseAmbient = kD * diffuseIBL * DiffuseIBLIntensity;
+
+    float3 specularAmbient = specularIBL * SpecularIBLIntensity;
+
+    float3 ambient = (diffuseAmbient + specularAmbient) * ao;
+
     
-    float3 ambient = (kD * diffuseIBL + specularIBL) * ao;
+   // float3 ambient = (kD * diffuseIBL + specularIBL) * ao;
     float3 color = ambient + Lo;
+
+    float exposureEV = -1.0f;
+
+    color *= exp2(exposureEV);
 
    
     float3 x = color;

@@ -58,8 +58,7 @@
               "RelativeToolTip": "Engine\\Shaders\\SimplePS.hlsl",
               "ViewState": "AgIAAL0AAAAAAAAAAAAAAOUAAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2026-08-11T18:52:04.237Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-11T18:52:04.237Z"
             },
             {
               "$type": "Document",
@@ -107,8 +106,7 @@
               "RelativeToolTip": "Engine\\Core\\Camera.cpp",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-03-13T18:14:11.057Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-13T18:14:11.057Z"
             },
             {
               "$type": "Document",
@@ -130,7 +128,7 @@
               "RelativeDocumentMoniker": "Engine\\Graphics\\Renderer.cpp",
               "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Graphics\\Renderer.cpp",
               "RelativeToolTip": "Engine\\Graphics\\Renderer.cpp",
-              "ViewState": "AgIAAB4BAAAAAAAAAAAQwEMBAAAqAAAAAAAAAA==",
+              "ViewState": "AgIAAD8BAAAAAAAAAAAQwGABAAAiAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
               "WhenOpened": "2026-02-20T10:35:28.986Z",
               "EditorCaption": ""
@@ -141,10 +139,6 @@
           "DockedHeight": 13,
           "SelectedChildIndex": -1,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
-            },
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"

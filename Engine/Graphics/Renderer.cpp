@@ -256,6 +256,8 @@ bool Renderer::CreateResources()
         return false;
     }
 
+   
+
     if(FAILED(CreateDDSTextureFromFile(
         device,
         context, 
@@ -330,6 +332,7 @@ bool Renderer::CreateResources()
     samp.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     samp.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
     samp.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+   
 
 	if (FAILED(device->CreateSamplerState(&samp, &m_samplerState)))
 		return false;

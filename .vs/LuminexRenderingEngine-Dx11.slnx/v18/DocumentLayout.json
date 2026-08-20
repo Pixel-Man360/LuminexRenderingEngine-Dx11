@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Editor\\Editor.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:Engine\\Editor\\Editor.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Editor\\Gizmo.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
       "RelativeMoniker": "D:0:0:{E7371170-AFC7-4526-B81D-7A7A361BFB3A}|DX11GraphicsEngine.vcxproj|solutionrelative:Engine\\Editor\\Gizmo.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
     },
@@ -59,6 +63,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "Editor.cpp",
+              "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Editor\\Editor.cpp",
+              "RelativeDocumentMoniker": "Engine\\Editor\\Editor.cpp",
+              "ToolTip": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Editor\\Editor.cpp",
+              "RelativeToolTip": "Engine\\Editor\\Editor.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHoBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-08-18T22:03:40.29Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "Gizmo.cpp",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Editor\\Gizmo.cpp",
               "RelativeDocumentMoniker": "Engine\\Editor\\Gizmo.cpp",
@@ -71,7 +88,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "Camera.h",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Core\\Camera.h",
               "RelativeDocumentMoniker": "Engine\\Core\\Camera.h",
@@ -79,12 +96,11 @@
               "RelativeToolTip": "Engine\\Core\\Camera.h",
               "ViewState": "AgIAAAkAAAAAAAAAAAAmwC4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-08-18T21:22:19.566Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-08-18T21:22:19.566Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "SimplePS.hlsl",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Shaders\\SimplePS.hlsl",
               "RelativeDocumentMoniker": "Engine\\Shaders\\SimplePS.hlsl",
@@ -96,7 +112,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "Material.h",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Graphics\\Material.h",
               "RelativeDocumentMoniker": "Engine\\Graphics\\Material.h",
@@ -108,7 +124,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "Material.cpp",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Graphics\\Material.cpp",
               "RelativeDocumentMoniker": "Engine\\Graphics\\Material.cpp",
@@ -120,7 +136,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "Renderer.h",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Graphics\\Renderer.h",
               "RelativeDocumentMoniker": "Engine\\Graphics\\Renderer.h",
@@ -128,12 +144,11 @@
               "RelativeToolTip": "Engine\\Graphics\\Renderer.h",
               "ViewState": "AgIAAJ0AAAAAAAAAAAAuwMQAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000680|",
-              "WhenOpened": "2026-03-13T18:21:04.055Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-13T18:21:04.055Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Camera.cpp",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Core\\Camera.cpp",
               "RelativeDocumentMoniker": "Engine\\Core\\Camera.cpp",
@@ -146,7 +161,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "MenuBarPanel.cpp",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Editor\\MenuBarPanel.cpp",
               "RelativeDocumentMoniker": "Engine\\Editor\\MenuBarPanel.cpp",
@@ -158,7 +173,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "Renderer.cpp",
               "DocumentMoniker": "K:\\Game projects\\C\u002B\u002B Game Folder\\LuminexRenderingEngine-Dx11\\Engine\\Graphics\\Renderer.cpp",
               "RelativeDocumentMoniker": "Engine\\Graphics\\Renderer.cpp",
@@ -166,8 +181,7 @@
               "RelativeToolTip": "Engine\\Graphics\\Renderer.cpp",
               "ViewState": "AgIAACYBAAAAAAAAAAAAwEcBAAAyAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
-              "WhenOpened": "2026-02-20T10:35:28.986Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-02-20T10:35:28.986Z"
             }
           ]
         },

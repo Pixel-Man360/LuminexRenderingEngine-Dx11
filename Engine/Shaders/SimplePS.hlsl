@@ -77,6 +77,7 @@ struct PSInput
     float2 uv : TEXCOORD0;
     float4 posVS : TEXCOORD1;
     float4 selectionColor : TEXCOORD2;
+    float4 tangentWS : TEXCOORD3;
 };
 
 int SelectCascade(float viewDepth)
@@ -194,9 +195,22 @@ float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
 float4 main(PSInput input) : SV_TARGET
 {
     float3 N = normalize(input.normalWS);
-    float3 V = normalize(CameraPosition - input.posWS);
-
     float2 uv = input.uv * MaterialTiling + MaterialOffset;
+
+    if (UseNormalMap)
+    {
+       float3 T = normalize(input.tangentWS.xyz - N * dot(N, input.tangentWS.xyz));
+       float3 B = normalize(cross(N, T)) * input.tangentWS.w;
+
+       float3 normalTS = NormalMap.Sample(TextureSampler, uv).rgb;
+       normalTS = normalTS * 2.0f - 1.0f;
+       normalTS = normalize(normalTS);
+
+       float3x3 TBN = float3x3(T, B, N);
+       N = normalize(mul(normalTS, TBN));
+    }
+
+    float3 V = normalize(CameraPosition - input.posWS);
 
     float3 albedo = MaterialAlbedo.rgb;
 

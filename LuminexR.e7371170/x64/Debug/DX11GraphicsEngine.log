@@ -1,2 +1,16 @@
-﻿  InspectorPanel.cpp
+﻿K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Shaders\SimplePS.hlsl(85,46): warning X4000: use of potentially uninitialized variable (SelectCascade)
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Shaders\SimplePS.hlsl(107,5): warning X4000: use of potentially uninitialized variable (CalculateCascadedShadow)
+  
+  compilation object save succeeded; see K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\SimplePS.cso
+  compilation object save succeeded; see K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\SimpleVS.cso
+  Editor.cpp
+  InspectorPanel.cpp
+  MenuBarPanel.cpp
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\MenuBarPanel.cpp(316,50): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+  SceneHierarchyPanel.cpp
+  Mesh.cpp
+  ModelLoader.cpp
+  Renderer.cpp
+  main.cpp
+  Generating Code...
   DX11GraphicsEngine.vcxproj -> K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\LuminexRenderingEngine-Dx11.exe

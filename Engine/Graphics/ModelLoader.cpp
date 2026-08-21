@@ -86,6 +86,26 @@ bool ModelLoader::LoadFromFile(const std::string& filepath, ID3D11Device* device
                 };
             }
 
+            if (mesh->HasTangentsAndBitangents())
+            {
+                const aiVector3D& n = mesh->mNormals[i];
+                const aiVector3D& t = mesh->mTangents[i];
+                const aiVector3D& b = mesh->mBitangents[i];
+
+                float crossX = n.y * t.z - n.z * t.y;
+                float crossY = n.z * t.x - n.x * t.z;
+                float crossZ = n.x * t.y - n.y * t.x;
+
+                float handedness = crossX * b.x + crossY * b.y + crossZ * b.z < 0.0f ? -1.0f : 1.0f;
+
+                vertex.Tangent = { t.x, t.y, t.z, handedness };
+            }
+
+            else
+            {
+                vertex.Tangent = { 1.0f, 0.0f, 0.0f, 1.0f };
+            }
+
             outVertices.push_back(vertex);
         }
 
@@ -99,7 +119,6 @@ bool ModelLoader::LoadFromFile(const std::string& filepath, ID3D11Device* device
         }
     }
 
-    // Validate mesh indices before creating GPU buffers.
     const uint32_t vertexCount = static_cast<uint32_t>(outVertices.size());
     for (uint32_t idx : outIndices)
     {

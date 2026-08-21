@@ -18,6 +18,7 @@ namespace Engine::Graphics
 		XMFLOAT3 Position;
 		XMFLOAT3 Normal;
         XMFLOAT2 TexCoord;
+        XMFLOAT4 Tangent;
     };
 
     class Mesh

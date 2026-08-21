@@ -296,6 +296,10 @@ void InspectorPanel::Draw(EditorContext& context)
 
             ImGui::Spacing();
 
+            ID3D11ShaderResourceView* normalMap = DrawTextureSelector("Normal Map", mat->GetNormalMap(), m_renderer, Engine::Graphics::Renderer::TextureColorSpace::Linear );
+
+            mat->SetNormalMap(normalMap);
+
             ID3D11ShaderResourceView* previousMetallicMap = mat->GetMetallicMap();
 
             ID3D11ShaderResourceView* metallicMap = DrawTextureSelector(

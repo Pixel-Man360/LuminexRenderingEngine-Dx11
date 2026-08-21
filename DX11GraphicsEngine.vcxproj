@@ -138,10 +138,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="DuplicateObjectCommand.h" />
     <ClInclude Include="Engine\Core\Camera.h" />
     <ClInclude Include="Engine\Core\Input.h" />
     <ClInclude Include="Engine\Core\Window.h" />
     <ClInclude Include="Engine\Editor\DeleteObjectCommand.h" />
+    <ClInclude Include="Engine\Editor\DuplicateObjectCommand.h" />
     <ClInclude Include="Engine\Editor\Editor.h" />
     <ClInclude Include="Engine\Editor\EditorContext.h" />
     <ClInclude Include="Engine\Editor\EditorPanel.h" />

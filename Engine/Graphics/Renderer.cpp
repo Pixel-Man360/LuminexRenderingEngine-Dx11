@@ -3,6 +3,7 @@
 #include <mutex>
 #include <utility>
 #include <algorithm>
+#include <cmath>
 #include "Renderer.h"
 #include "ModelLoader.h"
 #include "Shader.h"
@@ -81,6 +82,19 @@ void GetFrustrumConrersWS(const XMMATRIX& view, const XMMATRIX& proj, float near
         corners.push_back(cornerNearWS);
         corners.push_back(cornerFarWS);
     }
+}
+
+void Renderer::FocusCameraOn(Engine::Scene::SceneObject* object)
+{
+    if (!object) return;
+
+    XMFLOAT3 position = object->GetTransform().GetPosition();
+    XMFLOAT3 scale = object->GetTransform().GetScale();
+
+    float largestScale = std::fmax(std::fmax(fabsf(scale.x), fabsf(scale.y)), fabsf(scale.z));
+    float focusDistance = std::clamp(largestScale * 6.0f, 3.0f, 20.0f);
+
+    m_camera.FocusOn(position, focusDistance);
 }
 
 

@@ -74,14 +74,15 @@ namespace Engine::Graphics
 
         std::shared_ptr<Material> CreateDefaultMaterial();
         
-        // Camera access for gizmo/picking
+    
         DirectX::XMMATRIX GetViewMatrix() const { return m_camera.GetViewMatrix(); }
         DirectX::XMMATRIX GetProjectionMatrix() const;
         DirectX::XMFLOAT3 GetCameraPosition() const { return m_camera.GetPosition(); }
+        void FocusCameraOn(Engine::Scene::SceneObject* object);
         int GetScreenWidth() const { return static_cast<int>(m_deviceResources->GetWidth()); }
         int GetScreenHeight() const { return static_cast<int>(m_deviceResources->GetHeight()); }
         
-        // Viewport render target for editor
+
         ID3D11ShaderResourceView* GetViewportSRV() const { return m_viewportSRV; }
         void ResizeViewport(int width, int height);
         int GetViewportWidth() const { return m_viewportWidth; }

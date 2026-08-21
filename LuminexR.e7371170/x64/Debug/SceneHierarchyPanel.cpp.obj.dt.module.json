@@ -1,0 +1,14 @@
+{
+    "version": 1,
+    "revision": 0,
+    "rules": [
+        {
+            "primary-output": "LuminexR.e7371170\\x64\\Debug\\SceneHierarchyPanel.obj",
+            "outputs": [
+                "LuminexR.e7371170\\x64\\Debug\\SceneHierarchyPanel.cpp.obj.dt.module.json",
+                "LuminexR.e7371170\\x64\\Debug\\SceneHierarchyPanel.cpp.obj.dt.d.json"
+            ],
+            "requires": []
+        }
+    ]
+}

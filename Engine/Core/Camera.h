@@ -16,6 +16,7 @@ namespace Engine::Core
 
         XMFLOAT3 GetPosition() const { return m_position; }
         void FocusOn(const XMFLOAT3& target, float distance = 8.0f);
+    
 
     private:
         XMVECTOR GetForwardVector() const;

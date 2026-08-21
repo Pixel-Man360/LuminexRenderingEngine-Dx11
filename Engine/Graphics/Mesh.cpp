@@ -1,8 +1,85 @@
 #include "Mesh.h"
 #include "ModelLoader.h"
 #include <stdexcept>
+#include <vector>
+#include <cmath>
 
 using namespace Engine::Graphics;
+
+static void GenerateTangents(Vertex* vertices, uint32_t vertexCount, const uint32_t* indices, uint32_t indexCount)
+{
+    std::vector<XMVECTOR> tangents(vertexCount, XMVectorZero());
+    std::vector<XMVECTOR> bitangents(vertexCount, XMVectorZero());
+
+    for (uint32_t i = 0; i + 2 < indexCount; i += 3)
+    {
+        uint32_t i0 = indices[i];
+        uint32_t i1 = indices[i + 1];
+        uint32_t i2 = indices[i + 2];
+
+        const Vertex& v0 = vertices[i0];
+        const Vertex& v1 = vertices[i1];
+        const Vertex& v2 = vertices[i2];
+
+        XMVECTOR p0 = XMLoadFloat3(&v0.Position);
+        XMVECTOR p1 = XMLoadFloat3(&v1.Position);
+        XMVECTOR p2 = XMLoadFloat3(&v2.Position);
+
+        XMVECTOR edge1 = p1 - p0;
+        XMVECTOR edge2 = p2 - p0;
+
+        float du1 = v1.TexCoord.x - v0.TexCoord.x;
+        float dv1 = v1.TexCoord.y - v0.TexCoord.y;
+        float du2 = v2.TexCoord.x - v0.TexCoord.x;
+        float dv2 = v2.TexCoord.y - v0.TexCoord.y;
+
+        float determinant = du1 * dv2 - du2 * dv1;
+        if (fabsf(determinant) < 0.000001f) continue;
+
+        float r = 1.0f / determinant;
+
+        XMVECTOR tangent = (edge1 * dv2 - edge2 * dv1) * r;
+        XMVECTOR bitangent = (edge2 * du1 - edge1 * du2) * r;
+
+        tangents[i0] += tangent;
+        tangents[i1] += tangent;
+        tangents[i2] += tangent;
+
+        bitangents[i0] += bitangent;
+        bitangents[i1] += bitangent;
+        bitangents[i2] += bitangent;
+    }
+
+    for (uint32_t i = 0; i < vertexCount; ++i)
+    {
+        XMVECTOR normal = XMVector3Normalize(XMLoadFloat3(&vertices[i].Normal));
+        XMVECTOR tangent = tangents[i];
+
+        if (XMVectorGetX(XMVector3LengthSq(tangent)) < 0.000001f)
+        {
+            XMVECTOR reference = fabsf(vertices[i].Normal.y) < 0.999f ?
+                XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f) : XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+
+            tangent = XMVector3Cross(reference, normal);
+        }
+
+        tangent = tangent - normal * XMVectorGetX(XMVector3Dot(normal, tangent));
+        tangent = XMVector3Normalize(tangent);
+
+        float handedness = 1.0f;
+
+        if (XMVectorGetX(XMVector3LengthSq(bitangents[i])) > 0.000001f)
+        {
+            XMVECTOR calculatedBitangent = XMVector3Cross(normal, tangent);
+            handedness = XMVectorGetX(XMVector3Dot(calculatedBitangent, bitangents[i])) < 0.0f ? -1.0f : 1.0f;
+        }
+
+        XMFLOAT3 tangentFloat;
+        XMStoreFloat3(&tangentFloat, tangent);
+
+        vertices[i].Tangent = { tangentFloat.x, tangentFloat.y, tangentFloat.z, handedness };
+    }
+}
 
 
 bool Mesh::CreateCube(ID3D11Device* device)
@@ -60,6 +137,8 @@ bool Mesh::CreateCube(ID3D11Device* device)
         16,17,18, 16,18,19,
         20,21,22, 20,22,23
     };
+
+    GenerateTangents(vertices, _countof(vertices), indices, _countof(indices));
 
     m_indexCount = _countof(indices);
 
@@ -158,6 +237,8 @@ bool Mesh::CreateSphere(ID3D11Device* device, float radius, uint32_t slices, uin
             indices[ii++] = bottomLeft;
         }
     }
+
+    GenerateTangents(vertices, numVertices, indices, numIndices);
 
     m_indexCount = numIndices;
 
@@ -306,6 +387,8 @@ bool Mesh::CreateCylinder(ID3D11Device* device, float radius, float height, uint
         indices[ii++] = bottomRingStart + i + 1;
         indices[ii++] = bottomRingStart + i;
     }
+
+    GenerateTangents(vertices, vi, indices, ii);
 
     m_indexCount = ii;
 
@@ -494,6 +577,8 @@ bool Mesh::CreateCapsule(ID3D11Device* device, float radius, float height, uint3
         }
     }
 
+    GenerateTangents(vertices, vi, indices, ii);
+
     m_indexCount = ii;
 
     D3D11_BUFFER_DESC vbDesc = {};
@@ -538,6 +623,8 @@ bool Mesh::CreatePlane(ID3D11Device* device)
         0, 1, 2,
         0, 2, 3
     };
+
+    GenerateTangents(vertices, _countof(vertices), indices, _countof(indices));
 
     m_indexCount = 6;
 

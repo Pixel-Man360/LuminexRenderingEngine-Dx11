@@ -56,6 +56,7 @@ namespace Engine::Editor
 		ViewportPanel* m_viewportPanel = nullptr;
 		EditorContext m_context;
 		bool m_showDemoWindow = false;
+		Engine::Graphics::Renderer* m_renderer = nullptr;
 		
 		// Gizmo system
 		Gizmo m_gizmo;

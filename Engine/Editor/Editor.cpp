@@ -8,6 +8,8 @@
 #include "MousePicker.h"
 #include "UndoManager.h"
 #include "TransformChangeCommand.h"
+#include "DeleteObjectCommand.h"
+#include "../Editor/DuplicateObjectCommand.h"
 #include "../Graphics/Renderer.h"
 
 #include <Windows.h>
@@ -161,6 +163,8 @@ void Editor::Initialize(HWND__* hwnd, ID3D11Device* device, ID3D11DeviceContext*
 
 void Editor::SetRenderer(Engine::Graphics::Renderer* renderer)
 {
+    m_renderer = renderer;
+
     if (m_menuBar) m_menuBar->SetRenderer(renderer);
     if (m_inspectorPanel) m_inspectorPanel->SetRenderer(renderer);
     if (m_hierarchyPanel) m_hierarchyPanel->SetRenderer(renderer);
@@ -230,9 +234,23 @@ void Editor::Render()
 
     if (!ImGui::GetIO().WantCaptureKeyboard)
     {
+        ImGuiIO& io = ImGui::GetIO();
+
         if (ImGui::IsKeyPressed(ImGuiKey_W)) m_context.CurrentGizmoMode = GizmoMode::Translate;
         if (ImGui::IsKeyPressed(ImGuiKey_E)) m_context.CurrentGizmoMode = GizmoMode::Rotate;
         if (ImGui::IsKeyPressed(ImGuiKey_R)) m_context.CurrentGizmoMode = GizmoMode::Scale;
+
+        if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_D) && m_context.SelectedObject && m_context.ActiveScene)
+        {
+            auto command = std::make_unique<DuplicateObjectCommand>(m_context, m_context.SelectedObject);
+            UndoManager::Get().ExecuteCommand(std::move(command));
+        }
+
+        if (ImGui::IsKeyPressed(ImGuiKey_Delete) && m_context.SelectedObject && m_context.ActiveScene)
+        {
+            auto command = std::make_unique<DeleteObjectCommand>(m_context, m_context.SelectedObject);
+            UndoManager::Get().ExecuteCommand(std::move(command));
+        }
     }
 
     m_gizmo.SetMode(m_context.CurrentGizmoMode);
@@ -248,11 +266,14 @@ void Editor::RenderGizmo(const DirectX::XMMATRIX& view,
 }
 
 void Editor::HandleInput(int mouseX, int mouseY, bool leftButtonDown, bool leftButtonPressed,
-                         const DirectX::XMMATRIX& view,
-                         const DirectX::XMMATRIX& projection,
-                         const DirectX::XMFLOAT3& cameraPos,
-                         int screenWidth, int screenHeight)
+                         const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection,
+                         const DirectX::XMFLOAT3& cameraPos, int screenWidth, int screenHeight)
 {
+    static Engine::Scene::SceneObject* lastClickedObject = nullptr;
+    static ULONGLONG lastObjectClickTime = 0;
+    static int lastObjectClickX = 0;
+    static int lastObjectClickY = 0;
+
     if (ImGui::GetIO().WantCaptureMouse)
     {
         m_wasLeftButtonDown = leftButtonDown;
@@ -263,25 +284,63 @@ void Editor::HandleInput(int mouseX, int mouseY, bool leftButtonDown, bool leftB
 
     if (leftButtonPressed && !m_wasLeftButtonDown)
     {
-        bool gizmoHit = false;
+        Engine::Scene::SceneObject* picked = MousePicker::Pick(m_context.ActiveScene, mouseX, mouseY,
+                                                               view, projection, cameraPos, screenWidth, screenHeight);
 
-        if (m_context.SelectedObject)
+        ULONGLONG now = GetTickCount64();
+        int maxDoubleClickX = GetSystemMetrics(SM_CXDOUBLECLK);
+        int maxDoubleClickY = GetSystemMetrics(SM_CYDOUBLECLK);
+
+        bool sameObject = picked && picked == lastClickedObject;
+        bool withinTime = now - lastObjectClickTime <= GetDoubleClickTime();
+        bool withinDistance = abs(mouseX - lastObjectClickX) <= maxDoubleClickX &&
+            abs(mouseY - lastObjectClickY) <= maxDoubleClickY;
+
+        bool doubleClickedObject = sameObject && withinTime && withinDistance;
+
+        if (doubleClickedObject)
         {
-            gizmoHit = m_gizmo.OnMouseDown(mouseX, mouseY, m_context.SelectedObject,
-                                           view, projection, cameraPos, screenWidth, screenHeight, m_context.UniformScale);
-        }
-
-        if (!gizmoHit)
-        {
-            Engine::Scene::SceneObject* picked = MousePicker::Pick(m_context.ActiveScene, mouseX, mouseY,
-                                                                   view, projection, cameraPos, screenWidth, screenHeight);
-
             m_context.SelectedObject = picked;
 
-            if (picked && m_context.CurrentGizmoMode == GizmoMode::Translate)
+            if (m_renderer) m_renderer->FocusCameraOn(picked);
+
+            lastClickedObject = nullptr;
+            lastObjectClickTime = 0;
+        }
+        else
+        {
+            bool gizmoHit = false;
+
+            if (m_context.SelectedObject)
             {
-                m_gizmo.OnMouseDown(mouseX, mouseY, picked,
-                                    view, projection, cameraPos, screenWidth, screenHeight, m_context.UniformScale);
+                gizmoHit = m_gizmo.OnMouseDown(mouseX, mouseY, m_context.SelectedObject,
+                                               view, projection, cameraPos, screenWidth, screenHeight, m_context.UniformScale);
+            }
+
+            if (!gizmoHit)
+            {
+                m_context.SelectedObject = picked;
+
+                if (picked && m_context.CurrentGizmoMode == GizmoMode::Translate)
+                {
+                    m_gizmo.OnMouseDown(mouseX, mouseY, picked,
+                                        view, projection, cameraPos, screenWidth, screenHeight, m_context.UniformScale);
+                }
+            }
+
+            bool clickedObjectBody = picked && (!gizmoHit || m_gizmo.GetActiveAxis() == GizmoAxis::All);
+
+            if (clickedObjectBody)
+            {
+                lastClickedObject = picked;
+                lastObjectClickTime = now;
+                lastObjectClickX = mouseX;
+                lastObjectClickY = mouseY;
+            }
+            else
+            {
+                lastClickedObject = nullptr;
+                lastObjectClickTime = 0;
             }
         }
     }
@@ -299,17 +358,17 @@ void Editor::HandleInput(int mouseX, int mouseY, bool leftButtonDown, bool leftB
     {
         GizmoMode dragMode = m_gizmo.GetMode();
 
-        DirectX::XMFLOAT3 startPos = m_gizmo.GetDragStartPos();
-        DirectX::XMFLOAT3 startRot = m_gizmo.GetDragStartRot();
-        DirectX::XMFLOAT3 startScale = m_gizmo.GetDragStartScale();
+        XMFLOAT3 startPos = m_gizmo.GetDragStartPos();
+        XMFLOAT3 startRot = m_gizmo.GetDragStartRot();
+        XMFLOAT3 startScale = m_gizmo.GetDragStartScale();
 
         bool transformChanged = m_gizmo.OnMouseUp(m_context.SelectedObject);
 
         if (transformChanged && m_context.SelectedObject)
         {
-            DirectX::XMFLOAT3 endPos = m_context.SelectedObject->GetTransform().GetPosition();
-            DirectX::XMFLOAT3 endRot = m_context.SelectedObject->GetTransform().GetRotationEuler();
-            DirectX::XMFLOAT3 endScale = m_context.SelectedObject->GetTransform().GetScale();
+            XMFLOAT3 endPos = m_context.SelectedObject->GetTransform().GetPosition();
+            XMFLOAT3 endRot = m_context.SelectedObject->GetTransform().GetRotationEuler();
+            XMFLOAT3 endScale = m_context.SelectedObject->GetTransform().GetScale();
 
             if (dragMode == GizmoMode::Translate)
             {

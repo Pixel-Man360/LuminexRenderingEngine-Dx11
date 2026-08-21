@@ -1,6 +1,7 @@
 #include "SceneHierarchyPanel.h"
 #include "UndoManager.h"
 #include "DeleteObjectCommand.h"
+#include "../Editor/DuplicateObjectCommand.h"
 #include "imgui.h"
 #include "../Graphics/Renderer.h"
 #include "../Scene/LightComponent.h"
@@ -62,30 +63,51 @@ void SceneHierarchyPanel::Draw(EditorContext& context)
     }
 
     Engine::Scene::SceneObject* objectToDelete = nullptr;
+    Engine::Scene::SceneObject* objectToDuplicate = nullptr;
 
     for (auto& obj : context.ActiveScene->GetObjects())
     {
-        bool selected = (context.SelectedObject == obj.get());
+        bool selected = context.SelectedObject == obj.get();
 
-        if (ImGui::Selectable(obj->GetName().c_str(), selected))
+        if (ImGui::Selectable(obj->GetName().c_str(), selected, ImGuiSelectableFlags_AllowDoubleClick))
+            context.SelectedObject = obj.get();
+
+        if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
         {
             context.SelectedObject = obj.get();
+
+            if (m_renderer) m_renderer->FocusCameraOn(obj.get());
         }
 
         if (ImGui::BeginPopupContextItem())
         {
-            if (ImGui::MenuItem("Delete"))
-            {
+            context.SelectedObject = obj.get();
+
+            if (ImGui::MenuItem("Duplicate", "Ctrl+D"))
+                objectToDuplicate = obj.get();
+
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Delete", "Delete"))
                 objectToDelete = obj.get();
-            }
+
             ImGui::EndPopup();
         }
     }
 
+    if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsAnyItemHovered())
+        context.SelectedObject = nullptr;
+
+    if (objectToDuplicate)
+    {
+        auto command = std::make_unique<DuplicateObjectCommand>(context, objectToDuplicate);
+        UndoManager::Get().ExecuteCommand(std::move(command));
+    }
+
     if (objectToDelete)
     {
-        auto cmd = std::make_unique<DeleteObjectCommand>(context, objectToDelete);
-        UndoManager::Get().ExecuteCommand(std::move(cmd));
+        auto command = std::make_unique<DeleteObjectCommand>(context, objectToDelete);
+        UndoManager::Get().ExecuteCommand(std::move(command));
     }
 
 

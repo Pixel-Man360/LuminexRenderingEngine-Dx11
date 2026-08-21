@@ -201,6 +201,12 @@
     <ClInclude Include="Engine\Graphics\CBMaterial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DuplicateObjectCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Editor\DuplicateObjectCommand.h">
+      <Filter>Source Files\Engine\Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11GraphicsEngine.rc">

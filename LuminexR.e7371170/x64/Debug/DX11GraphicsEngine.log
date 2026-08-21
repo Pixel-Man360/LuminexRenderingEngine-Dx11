@@ -1,2 +1,7 @@
-﻿  Editor.cpp
+﻿  InspectorPanel.cpp
+  MenuBarPanel.cpp
+K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\Engine\Editor\MenuBarPanel.cpp(316,50): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+  Renderer.cpp
+  main.cpp
+  Generating Code...
   DX11GraphicsEngine.vcxproj -> K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\LuminexRenderingEngine-Dx11.exe

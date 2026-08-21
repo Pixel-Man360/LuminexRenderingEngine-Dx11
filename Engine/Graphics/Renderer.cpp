@@ -240,7 +240,7 @@ bool Renderer::CreateResources()
 
  
     if (FAILED(CreateWICTextureFromFileEx( device, context, L"Assets/textures/Brick.png", 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
-        0, D3D11_RESOURCE_MISC_GENERATE_MIPS, WIC_LOADER_FORCE_SRGB, nullptr, &m_brickTexture )))
+        0,  D3D11_RESOURCE_MISC_GENERATE_MIPS, WIC_LOADER_FORCE_SRGB, nullptr, &m_brickTexture)))
     {
         MessageBox(nullptr, L"Failed to load brick texture", L"Error", MB_OK);
         return false;
@@ -249,7 +249,7 @@ bool Renderer::CreateResources()
 
   
 
-    if (FAILED(CreateWICTextureFromFileEx(device, context, L"Assets/textures/Ground2.png", 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
+    if (FAILED(CreateWICTextureFromFileEx(device, context, L"Assets/textures/Ground.png", 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
         0, D3D11_RESOURCE_MISC_GENERATE_MIPS, WIC_LOADER_FORCE_SRGB, nullptr, &m_groundTexture)))
     {
         MessageBox(nullptr, L"Failed to load ground texture", L"Error", MB_OK);
@@ -324,10 +324,11 @@ bool Renderer::CreateResources()
     ground->SetMaterial(mat);
     ground->GetMaterial()->SetRoughness(1.0f);
 	ground->GetMaterial()->SetMetallic(0.0f);
-	ground->GetMaterial()->SetTiling({ 3.0f, 3.0f });
+	ground->GetMaterial()->SetTiling({ 5.0f, 5.0f });
 	ground->GetMaterial()->SetOffset({ 1.0f, 1.0f });
     ground->SetMesh(m_planeMesh);
     ground->GetTransform().SetPosition({ 0.5, -1.6f, 0 });
+	ground->GetTransform().SetScale({ 2.0f, 2.0f, 2.0f });
 
     D3D11_SAMPLER_DESC samp = {};
     samp.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -1269,26 +1270,27 @@ ID3D11Device* Renderer::GetDevice() const
     return m_deviceResources ? m_deviceResources->GetDevice() : nullptr;
 }
 
-ID3D11ShaderResourceView* Engine::Graphics::Renderer::ImportTextureFromFile(const std::wstring& filepath)
+ID3D11ShaderResourceView* Renderer::ImportTextureFromFile(const std::wstring& filepath, TextureColorSpace colorSpace)
 {
     if (!m_deviceResources) return nullptr;
+
     ID3D11Device* device = m_deviceResources->GetDevice();
     ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
+
     if (!device || !context) return nullptr;
 
     ID3D11ShaderResourceView* srv = nullptr;
-    if (FAILED(CreateWICTextureFromFileEx(device, context, filepath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
-        0, D3D11_RESOURCE_MISC_GENERATE_MIPS, WIC_LOADER_FORCE_SRGB, nullptr, &srv)))
-    {
-        std::wstring errorMsg = L"Failed to load texture: " + filepath;
-		MessageBox(nullptr, errorMsg.c_str(), L"Error", MB_OK);
-        return nullptr;
-    }
 
-    // Extract filename for display name
-    std::filesystem::path p(filepath);
-    std::string name = p.filename().string();
+    WIC_LOADER_FLAGS flags = colorSpace == TextureColorSpace::SRGB ?
+        WIC_LOADER_FORCE_SRGB : WIC_LOADER_IGNORE_SRGB;
 
-    m_textures.push_back({ name, srv });
+    HRESULT hr = CreateWICTextureFromFileEx( device, context, filepath.c_str(), 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, 0, D3D11_RESOURCE_MISC_GENERATE_MIPS, flags,
+        nullptr, &srv );
+
+    if (FAILED(hr)) return nullptr;
+
+    std::filesystem::path path(filepath);
+    m_textures.push_back({ path.filename().string(), srv });
+
     return srv;
 }

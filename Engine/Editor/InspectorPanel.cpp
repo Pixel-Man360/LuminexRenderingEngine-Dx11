@@ -24,6 +24,54 @@ static bool s_isDraggingPos = false;
 static bool s_isDraggingRot = false;
 static bool s_isDraggingScale = false;
 
+static ID3D11ShaderResourceView* DrawTextureSelector( const char* label, ID3D11ShaderResourceView* currentTexture, Engine::Graphics::Renderer* renderer,
+    Engine::Graphics::Renderer::TextureColorSpace colorSpace)
+{
+    auto textures = renderer->GetAvailableTextures();
+
+    int currentIndex = 0;
+
+    for (size_t i = 0; i < textures.size(); ++i)
+    {
+        if (textures[i].srv == currentTexture)
+        {
+            currentIndex = static_cast<int>(i);
+            break;
+        }
+    }
+
+    std::vector<std::string> names;
+
+    for (const auto& texture : textures) names.push_back(texture.name);
+
+    names.push_back("Import...");
+
+    std::vector<const char*> items;
+
+    for (const auto& name : names) items.push_back(name.c_str());
+
+    if (!ImGui::Combo(label, &currentIndex, items.data(), static_cast<int>(items.size())))
+        return currentTexture;
+
+    if (currentIndex < static_cast<int>(textures.size()))
+        return textures[currentIndex].srv;
+
+    wchar_t filename[MAX_PATH] = {};
+
+    OPENFILENAMEW fileDialog = {};
+    fileDialog.lStructSize = sizeof(fileDialog);
+    fileDialog.lpstrFile = filename;
+    fileDialog.nMaxFile = MAX_PATH;
+    fileDialog.lpstrFilter = L"Image Files\0*.png;*.jpg;*.jpeg;*.bmp;*.tga\0All Files\0*.*\0";
+    fileDialog.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
+
+    if (!GetOpenFileNameW(&fileDialog)) return currentTexture;
+
+    ID3D11ShaderResourceView* texture = renderer->ImportTextureFromFile(filename, colorSpace);
+
+    return texture ? texture : currentTexture;
+}
+
 void InspectorPanel::Draw(EditorContext& context)
 {
     ImGui::Begin("Inspector");
@@ -247,80 +295,91 @@ void InspectorPanel::Draw(EditorContext& context)
             for (auto& s : texNamesStr)
                 texNames.push_back(s.c_str());
 
-            if (ImGui::Combo("Albedo Texture", &currentTex, texNames.data(), static_cast<int>(texNames.size())))
-            {
-                if (currentTex < static_cast<int>(textures.size()))
-                {
-                    mat->SetAlbedoMap(textures[currentTex].srv);
-                }
-                else
-                {
-                    // Import selected
-                    // Open native file dialog
-                    wchar_t filename[MAX_PATH] = {0};
-                    OPENFILENAMEW ofn = {};
-                    ofn.lStructSize = sizeof(ofn);
-                    ofn.lpstrFile = filename;
-                    ofn.nMaxFile = MAX_PATH;
-                    ofn.lpstrFilter = L"Image Files\0*.png;*.jpg;*.jpeg;*.bmp;*.tga\0All Files\0*.*\0";
-                    ofn.Flags = OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_NOCHANGEDIR;
-                    if (GetOpenFileNameW(&ofn))
-                    {
-                        std::wstring path = filename;
-                        ID3D11ShaderResourceView* newSrv = m_renderer->ImportTextureFromFile(path);
-                        if (newSrv)
-                        {
-                            mat->SetAlbedoMap(newSrv);
-                        }
-                    }
-                }
-            }
+            ID3D11ShaderResourceView* albedoMap = DrawTextureSelector( "Albedo Map", mat->GetAlbedoMap(), m_renderer, Engine::Graphics::Renderer::TextureColorSpace::SRGB );
 
-            // Albedo color (tint)
+            mat->SetAlbedoMap(albedoMap);
+
             DirectX::XMFLOAT4 albedo = mat->GetData().Albedo;
             float albedoColor[3] = { albedo.x, albedo.y, albedo.z };
+
             if (ImGui::ColorEdit3("Albedo Tint", albedoColor))
             {
                 mat->SetAlbedo({ albedoColor[0], albedoColor[1], albedoColor[2], 1.0f });
             }
 
-            // Tiling
-            DirectX::XMFLOAT2 tiling = mat->GetTiling();
-            float tilingVals[2] = { tiling.x, tiling.y };
-            if (ImGui::DragFloat2("Tiling", tilingVals, 0.05f, 0.01f, 64.0f))
-            {
-                mat->SetTiling({ tilingVals[0], tilingVals[1] });
-            }
+            ImGui::Spacing();
 
-            // Offset
-            DirectX::XMFLOAT2 offset = mat->GetOffset();
-            float offsetVals[2] = { offset.x, offset.y };
-            if (ImGui::DragFloat2("Offset", offsetVals, 0.01f, -10.0f, 10.0f))
-            {
-                mat->SetOffset({ offsetVals[0], offsetVals[1] });
-            }
+            ID3D11ShaderResourceView* metallicMap = DrawTextureSelector( "Metallic Map", mat->GetMetallicMap(), m_renderer, Engine::Graphics::Renderer::TextureColorSpace::Linear );
 
-            // Metallic
+            mat->SetMetallicMap(metallicMap);
+
             float metallic = mat->GetData().Metallic;
-            if (ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f))
+
+            if (!metallicMap)
             {
-                mat->SetMetallic(metallic);
+                if (ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f))
+                    mat->SetMetallic(metallic);
+            }
+            else
+            {
+                ImGui::BeginDisabled();
+                ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f);
+                ImGui::EndDisabled();
             }
 
-            // Roughness
+            ImGui::Spacing();
+
+            ID3D11ShaderResourceView* roughnessMap = DrawTextureSelector( "Roughness Map", mat->GetRoughnessMap(), m_renderer, Engine::Graphics::Renderer::TextureColorSpace::Linear );
+
+            mat->SetRoughnessMap(roughnessMap);
+
             float roughness = mat->GetData().Roughness;
-            if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f))
+
+            if (!roughnessMap)
             {
-                mat->SetRoughness(roughness);
+                if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f))
+                    mat->SetRoughness(roughness);
+            }
+            else
+            {
+                ImGui::BeginDisabled();
+                ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f);
+                ImGui::EndDisabled();
             }
 
-            // Ambient Occlusion
+            ImGui::Spacing();
+
+            ID3D11ShaderResourceView* aoMap = DrawTextureSelector( "AO Map", mat->GetAOMap(), m_renderer, Engine::Graphics::Renderer::TextureColorSpace::Linear );
+
+            mat->SetAOMap(aoMap);
+
             float ao = mat->GetData().AO;
-            if (ImGui::SliderFloat("AO", &ao, 0.0f, 1.0f))
+
+            if (!aoMap)
             {
-                mat->SetAO(ao);
+                if (ImGui::SliderFloat("AO", &ao, 0.0f, 1.0f))
+                    mat->SetAO(ao);
+            }
+            else
+            {
+                ImGui::BeginDisabled();
+                ImGui::SliderFloat("AO", &ao, 0.0f, 1.0f);
+                ImGui::EndDisabled();
             }
 
+            ImGui::Spacing();
+
+            DirectX::XMFLOAT2 tiling = mat->GetTiling();
+            float tilingValues[2] = { tiling.x, tiling.y };
+
+            if (ImGui::DragFloat2("Tiling", tilingValues, 0.05f, 0.01f, 64.0f))
+                mat->SetTiling({ tilingValues[0], tilingValues[1] });
+
+            DirectX::XMFLOAT2 offset = mat->GetOffset();
+            float offsetValues[2] = { offset.x, offset.y };
+
+            if (ImGui::DragFloat2("Offset", offsetValues, 0.01f, -10.0f, 10.0f))
+                mat->SetOffset({ offsetValues[0], offsetValues[1] });
             ImGui::Unindent();
             ImGui::Spacing();
             if (ImGui::Button("Remove Material"))

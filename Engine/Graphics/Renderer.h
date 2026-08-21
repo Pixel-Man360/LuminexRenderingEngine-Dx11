@@ -51,16 +51,25 @@ namespace Engine::Graphics
         Mesh* GetCapsuleMesh() const { return m_capsule; }
         Mesh* GetPlaneMesh() const { return m_planeMesh; }
         
-        // Get available textures for material system
+
         ID3D11ShaderResourceView* GetBrickTexture() const { return m_brickTexture; }
         ID3D11ShaderResourceView* GetGroundTexture() const { return m_groundTexture; }
         
-        // Get texture count and names for UI
-        struct TextureInfo { std::string name; ID3D11ShaderResourceView* srv; };
+        struct TextureInfo 
+        { 
+            std::string name; 
+            ID3D11ShaderResourceView* srv; 
+        };
+
         std::vector<TextureInfo> GetAvailableTextures() const { return m_textures; }
 
-        // Import texture from file and add to available textures. Returns SRV or nullptr on failure.
-        ID3D11ShaderResourceView* ImportTextureFromFile(const std::wstring& filepath);
+        enum class TextureColorSpace
+        {
+            SRGB,
+            Linear
+        };
+
+        ID3D11ShaderResourceView* ImportTextureFromFile(const std::wstring& filepath, TextureColorSpace colorSpace);
 
 
         std::shared_ptr<Material> CreateDefaultMaterial();

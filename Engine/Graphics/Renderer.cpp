@@ -17,11 +17,14 @@
 #include "../Core/Input.h"
 #include "../Scene/Scene.h"
 #include "../Scene/LightComponent.h"
+#include "../Graphics/CBSkybox.h"
+
 
 #include <DirectXMath.h>
 #include <WICTextureLoader.h>
 #include <DDSTextureLoader.h>
 #include <filesystem>
+
 
 using namespace Engine::Graphics;
 using namespace Engine::Core;
@@ -123,6 +126,7 @@ bool Renderer::CreateResources()
     m_shader = new Shader();
     m_shadowShader = new Shader();
 	m_shadowDebugShader = new Shader();
+    m_skyboxShader = new Shader();
 	m_cube = new Mesh();
 	m_sphere = new Mesh();
 	m_cylinder = new Mesh();
@@ -133,6 +137,7 @@ bool Renderer::CreateResources()
     m_cbLight = new ConstantBuffer();
     m_cbShadow = new ConstantBuffer();
     m_cbMaterial = new ConstantBuffer();
+    m_cbSkybox = new ConstantBuffer();
 
     D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
     {
@@ -146,6 +151,12 @@ bool Renderer::CreateResources()
     {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+    };
+
+    D3D11_INPUT_ELEMENT_DESC skyboxLayoutDesc[] =
+    {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
     if (!m_shader->LoadFromFiles(
@@ -178,6 +189,13 @@ bool Renderer::CreateResources()
 		ARRAYSIZE(shadowDebugLayoutDesc)))
     {
         MessageBox(nullptr, L"Failed to load shadow debug shaders", L"Error", MB_OK);
+        return false;
+    }
+
+    if (!m_skyboxShader->LoadFromFiles(device, L"Engine/Shaders/SkyboxVS.hlsl", L"Engine/Shaders/SkyboxPS.hlsl",
+        skyboxLayoutDesc, ARRAYSIZE(skyboxLayoutDesc)))
+    {
+        MessageBox(nullptr, L"Failed to load skybox shaders", L"Error", MB_OK);
         return false;
     }
 
@@ -252,6 +270,8 @@ bool Renderer::CreateResources()
 
     if (!m_cbMaterial->Create(device, sizeof(CBMaterial)))
         return false;
+
+    if (!m_cbSkybox->Create(device, sizeof(CBSkybox))) return false;
 
  
     if (FAILED(CreateWICTextureFromFileEx( device, context, L"Assets/textures/Brick.png", 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
@@ -403,6 +423,14 @@ bool Renderer::CreateResources()
 
     if (FAILED(device->CreateDepthStencilState(&depthDesc, &m_depthStencilState)))
         return false;
+
+
+    D3D11_DEPTH_STENCIL_DESC skyboxDepthDesc = {};
+    skyboxDepthDesc.DepthEnable = FALSE;
+    skyboxDepthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+    skyboxDepthDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+
+    if (FAILED(device->CreateDepthStencilState(&skyboxDepthDesc, &m_skyboxDepthState))) return false;
 
     // -----------------------------
     // Shadow map
@@ -834,19 +862,12 @@ void Renderer::MainRenderPass()
     context->RSSetState(m_rasterizerState);
     context->OMSetDepthStencilState(m_depthStencilState, 0);
 
-    // -----------------------------
-    // Camera + Matrices (camera already updated in Render())
-    // -----------------------------
     XMMATRIX view = m_camera.GetViewMatrix();
-    XMMATRIX proj = XMMatrixPerspectiveFovLH(
-        XM_PIDIV4,
-        m_deviceResources->GetAspectRatio(),
-        m_nearZ,
-        m_farZ);
+    XMMATRIX proj = XMMatrixPerspectiveFovLH(XM_PIDIV4, m_deviceResources->GetAspectRatio(), m_nearZ, m_farZ);
 
-    // -----------------------------
-    // Compute Shadow Matrices
-    // -----------------------------
+    RenderSkybox(view, proj);
+
+
     XMFLOAT3 dir = m_lights[0].Direction;
     XMVECTOR lightDir = XMVector3Normalize(XMLoadFloat3(&dir));
 
@@ -983,9 +1004,6 @@ void Renderer::MainRenderPass()
         XMStoreFloat4x4(&cbObj.View, XMMatrixTranspose(view));
         XMStoreFloat4x4(&cbObj.Projection, XMMatrixTranspose(proj));
         
-        // Selection highlight - orange tint for selected objects (Turned off for now)
-     /*   bool isSelected = (obj == m_selectedObject);
-        cbObj.SelectionColor = { 0.5f, 0.5f, 0.0f, isSelected ? 1.0f : 0.0f };*/
         cbObj.SelectionColor = { 0.0f, 0.0f, 0.0f, 0.0f };
 
         m_cbPerObject->Update(context, &cbObj);
@@ -1084,6 +1102,8 @@ void Renderer::RenderShadowDebug()
     ctx->Draw(4, 0);
 }
 
+
+
 void Renderer::ComputeCascadeSplits()
 {
 	for (uint32_t i = 0; i < NUM_CASCADES; i++)
@@ -1095,6 +1115,55 @@ void Renderer::ComputeCascadeSplits()
 
 		m_cascadeSplits[i] = m_cascadeLambda * logSplit + (1.0f - m_cascadeLambda) * linearSplit;
     }
+}
+
+void Renderer::RenderSkybox(const XMMATRIX& view, const XMMATRIX& projection)
+{
+    if (!m_skyboxShader || !m_cbSkybox || !m_prefilterMap) return;
+
+    ID3D11DeviceContext* context = m_deviceResources->GetDeviceContext();
+
+    CBSkybox cb = {};
+
+    XMMATRIX inverseProjection = XMMatrixInverse(nullptr, projection);
+    XMMATRIX inverseView = XMMatrixInverse(nullptr, view);
+
+    XMStoreFloat4x4(&cb.InvProjection, XMMatrixTranspose(inverseProjection));
+    XMStoreFloat4x4(&cb.InvView, XMMatrixTranspose(inverseView));
+
+    cb.ExposureEV = m_skyboxExposure;
+    cb.Intensity = m_skyboxIntensity;
+
+    m_cbSkybox->Update(context, &cb);
+
+    m_skyboxShader->Bind(context);
+
+    ID3D11Buffer* skyboxCB = m_cbSkybox->Get();
+    context->VSSetConstantBuffers(0, 1, &skyboxCB);
+    context->PSSetConstantBuffers(0, 1, &skyboxCB);
+
+    ID3D11ShaderResourceView* environment = m_prefilterMap.Get();
+    ID3D11SamplerState* sampler = m_iblSampler.Get();
+
+    context->PSSetShaderResources(0, 1, &environment);
+    context->PSSetSamplers(0, 1, &sampler);
+
+    context->OMSetDepthStencilState(m_skyboxDepthState, 0);
+    context->RSSetState(nullptr);
+
+    UINT stride = sizeof(float) * 5;
+    UINT offset = 0;
+
+    context->IASetVertexBuffers(0, 1, &m_fullscreenVB, &stride, &offset);
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+    context->Draw(4, 0);
+
+    ID3D11ShaderResourceView* nullSRV = nullptr;
+    context->PSSetShaderResources(0, 1, &nullSRV);
+
+    context->OMSetDepthStencilState(m_depthStencilState, 0);
+    context->RSSetState(m_rasterizerState);
 }
 
 
@@ -1182,6 +1251,13 @@ void Renderer::Release()
     delete m_shadowDebugShader;
     m_shadowDebugShader = nullptr;
 
+
+    if (m_skyboxDepthState) m_skyboxDepthState->Release();
+
+    m_skyboxDepthState = nullptr;
+    m_skyboxShader = nullptr;
+    m_cbSkybox = nullptr;
+
     delete m_shader;
 	delete m_cube;
 	delete m_sphere;
@@ -1192,6 +1268,9 @@ void Renderer::Release()
     delete m_cbLight;
     delete m_cbShadow;
     delete m_shadowShader;
+
+    delete m_skyboxShader;
+    delete m_cbSkybox;
 }
 
 Mesh* Renderer::ImportMesh(const std::string& filepath)

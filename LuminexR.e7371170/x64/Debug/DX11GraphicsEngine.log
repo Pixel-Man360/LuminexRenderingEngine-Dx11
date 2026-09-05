@@ -1,2 +1,1 @@
-﻿  SceneHierarchyPanel.cpp
-  DX11GraphicsEngine.vcxproj -> K:\Game projects\C++ Game Folder\LuminexRenderingEngine-Dx11\x64\Debug\LuminexRenderingEngine-Dx11.exe
+﻿LINK : fatal error LNK1104: cannot open file 'assimp-vc143-mt.lib'

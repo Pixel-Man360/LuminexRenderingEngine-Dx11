@@ -1,0 +1,42 @@
+{
+    "Version": "1.2",
+    "Data": {
+        "Source": "k:\\game projects\\c++ game folder\\luminexrenderingengine-dx11\\engine\\graphics\\cbmaterial.h",
+        "ProvidedModule": "",
+        "Includes": [
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\directxmath.h",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\math.h",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\corecrt_math.h",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\corecrt.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\vcruntime.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\sal.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\concurrencysal.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\vadefs.h",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\float.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\intrin.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\intrin0.inl.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\setjmp.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\immintrin.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\wmmintrin.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\nmmintrin.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\smmintrin.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\tmmintrin.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\pmmintrin.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\emmintrin.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\xmmintrin.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\mmintrin.h",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\malloc.h",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\corecrt_malloc.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\zmmintrin.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\ammintrin.h",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\assert.h",
+            "f:\\visual studio\\vc\\tools\\msvc\\14.51.36231\\include\\stdint.h",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\directxmathconvert.inl",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\directxmathvector.inl",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\directxmathmatrix.inl",
+            "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\um\\directxmathmisc.inl"
+        ],
+        "ImportedModules": [],
+        "ImportedHeaderUnits": []
+    }
+}

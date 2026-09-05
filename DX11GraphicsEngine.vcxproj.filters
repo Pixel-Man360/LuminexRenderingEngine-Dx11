@@ -207,6 +207,12 @@
     <ClInclude Include="Engine\Editor\DuplicateObjectCommand.h">
       <Filter>Source Files\Engine\Editor</Filter>
     </ClInclude>
+    <ClInclude Include="CBSkybox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\Graphics\CBSkybox.h">
+      <Filter>Source Files\Engine\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DX11GraphicsEngine.rc">
@@ -342,6 +348,12 @@
       <Filter>Source Files\Engine\Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Engine\Shaders\SimpleVS.hlsl">
+      <Filter>Source Files\Engine\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\Shaders\SkyboxVS.hlsl">
+      <Filter>Source Files\Engine\Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Engine\Shaders\SkyboxPS.hlsl">
       <Filter>Source Files\Engine\Shaders</Filter>
     </FxCompile>
   </ItemGroup>

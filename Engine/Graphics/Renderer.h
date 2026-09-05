@@ -11,6 +11,7 @@
 #include "Mesh.h"
 #include "../Core/Camera.h"
 #include "../Scene/Scene.h"
+#include "../Graphics/CBSkybox.h"
 
 #include "Light.h"
 #include "CBLight.h"
@@ -114,6 +115,7 @@ namespace Engine::Graphics
         Shader* m_shader = nullptr;
 		Shader* m_shadowShader = nullptr;
         Shader* m_shadowDebugShader = nullptr;
+        Shader* m_skyboxShader = nullptr;
         Mesh* m_cube = nullptr;
 		Mesh* m_sphere = nullptr;
 		Mesh* m_cylinder = nullptr;
@@ -124,21 +126,18 @@ namespace Engine::Graphics
         ConstantBuffer* m_cbLight = nullptr;
 		ConstantBuffer* m_cbShadow = nullptr;
         ConstantBuffer* m_cbMaterial = nullptr;
+        ConstantBuffer* m_cbSkybox = nullptr;
         std::vector<Light> m_lights;
 
 
-
-        // Pipeline states
 		ID3D11RasterizerState* m_rasterizerState = nullptr;
 		ID3D11RasterizerState* m_shadowRasterizerState = nullptr;
 		ID3D11DepthStencilState* m_depthStencilState = nullptr;
 
-        // Texture
         ID3D11ShaderResourceView* m_brickTexture = nullptr;
         ID3D11ShaderResourceView* m_groundTexture = nullptr;
         ID3D11SamplerState* m_samplerState = nullptr;
 
-        // Dynamic list of available textures (includes defaults and imported textures)
         std::vector<TextureInfo> m_textures;
 
         ID3D11Texture2D* m_shadowMapArray = nullptr;
@@ -147,7 +146,6 @@ namespace Engine::Graphics
 
 		ID3D11SamplerState* m_shadowMapSampler = nullptr;
 
-        // Shadow matrices
         DirectX::XMMATRIX m_lightViewProj[NUM_CASCADES];
         ID3D11DepthStencilView* m_shadowCascadeDSVs[NUM_CASCADES];
 
@@ -159,19 +157,16 @@ namespace Engine::Graphics
         DirectX::XMMATRIX m_lightView;
         DirectX::XMMATRIX m_lightProj;
 
-
-        // Shadow debug
         bool m_showShadowDebug = false;
 
-        // Debug quad
         ID3D11Buffer* m_fullscreenVB = nullptr;
 
-        // Viewport render target (for rendering scene to texture)
         ID3D11Texture2D* m_viewportTexture = nullptr;
         ID3D11RenderTargetView* m_viewportRTV = nullptr;
         ID3D11ShaderResourceView* m_viewportSRV = nullptr;
         ID3D11Texture2D* m_viewportDepthTexture = nullptr;
         ID3D11DepthStencilView* m_viewportDSV = nullptr;
+       
         int m_viewportWidth = 1280;
         int m_viewportHeight = 720;
        
@@ -194,6 +189,11 @@ namespace Engine::Graphics
 		ComPtr<ID3D11ShaderResourceView> m_brdfLUT;
 
         ComPtr<ID3D11SamplerState> m_iblSampler;
+       
+        ID3D11DepthStencilState* m_skyboxDepthState = nullptr;
+        float m_skyboxExposure = -1.0f;
+        float m_skyboxIntensity = 1.0f;
+
 
         bool CreateResources();
         void ShadowPass();
@@ -201,6 +201,8 @@ namespace Engine::Graphics
         void RenderShadowDebug();
 		void ComputeCascadeSplits();
         void ToggleShadowDebug() { m_showShadowDebug = !m_showShadowDebug; }
+
+        void RenderSkybox(const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection);
     };
 
 } 
